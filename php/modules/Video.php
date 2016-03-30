@@ -62,7 +62,10 @@ class Video extends Module {
 
 	}
 
-	public function add($files, $albumID, $description = '', $tags = '') {
+	public function add($files, $albumID, $description = '', $tags = '', $returnOnError = false) {
+
+		# Use $returnOnError if you want to handle errors by your own
+		# e.g. when calling this functions inside an if-condition
 
 		# Check dependencies
 		self::dependencies( isset( $this->database ) );
@@ -118,6 +121,7 @@ class Video extends Module {
 			$mime_type = Video::getMimeType($file['tmp_name']);
 			if ( $mime_type === false ) {
 				Log::error($this->database, __METHOD__, __LINE__, 'Video format not supported');
+                if ($returnOnError===true) return false;
 				exit('Error: Video format  not supported!');
 			}
 			$extension = self::$allowedMimeTypes[$mime_type];
@@ -136,6 +140,7 @@ class Video extends Module {
 			$checksum = sha1_file($tmp_name);
 			if ($checksum===false) {
 				Log::error($this->database, __METHOD__, __LINE__, 'Could not calculate checksum for video');
+                if ($returnOnError===true) return false;
 				exit('Error: Could not calculate checksum for video!');
 			}
 
@@ -154,11 +159,13 @@ class Video extends Module {
 				if (!is_uploaded_file($tmp_name)) {
 					if (!@rename($tmp_name, $path)) {
 						Log::error($this->database, __METHOD__, __LINE__, 'Could not move video to uploads');
+                        if ($returnOnError===true) return false;
 						exit('Error: Could not move video to uploads!');
 					}
 				} else {
 					if (!@move_uploaded_file($tmp_name, $path)) {
 						Log::error($this->database, __METHOD__, __LINE__, 'Could not move video to uploads');
+                        if ($returnOnError===true) return false;
 						exit('Error: Could not move video to uploads!');
 					}
 				}
@@ -182,6 +189,7 @@ class Video extends Module {
                            #Create thumb
                            if(!$this->createThumb($path,$video_name, $info['type'], $info['width'], $info['height'])){
                               Log::error($this->database, __METHOD__,__LINE__, "Could not create thumbnail for video");
+                              if ($returnOnError===true) return false;
                               exit("Error:Could not create thumbnail for video");
                           }
 
@@ -197,6 +205,7 @@ class Video extends Module {
 
 			if (!$result) {
 				Log::error($this->database, __METHOD__, __LINE__, $this->database->error);
+                if ($returnOnError===true) return false;
 				exit('Error: Could not save video in database!');
 			}
 
