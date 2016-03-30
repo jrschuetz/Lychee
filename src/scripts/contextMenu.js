@@ -140,8 +140,6 @@ contextMenu.albumTitle = function(albumID, e) {
 
 			})
 
-			});
-
       if( lychee.role === 'admin'){
 			items.unshift({ type: 'separator' })
       }
