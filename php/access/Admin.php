@@ -67,7 +67,7 @@ class Admin extends Access {
       case 'Users::changePrivileges': $this->changePrivileges(); break;
 
 			# Error
-			default:						exit('Error: Function not found! Please check the spelling of the called function.');
+			default:						exit('Error: Admin function not found! Please check the spelling of the called function.');
 											return false; break;
 
 		}
