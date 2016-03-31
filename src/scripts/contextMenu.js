@@ -10,20 +10,20 @@ contextMenu.add = function(e) {
   var items;
   if( lychee.role === 'admin'){
 	let items = [
-		{ type: 'item', title: build.iconic('image') + 'Upload Photo', fn: () => $('#upload_files').click() },
-		{ type: 'separator' },
-		{ type: 'item', title: build.iconic('link-intact') + 'Import from Link', fn: upload.start.url },
-		{ type: 'item', title: build.iconic('dropbox', 'ionicons') + 'Import from Dropbox', fn: upload.start.dropbox },
-		{ type: 'item', title: build.iconic('terminal') + 'Import from Server', fn: upload.start.server },
-		{ type: 'separator' },
-		{ type: 'item', title: build.iconic('folder') + 'New Album', fn: album.add }
+		{ title: build.iconic('image') + 'Upload Photo', fn: () => $('#upload_files').click() },
+		{ },
+		{ title: build.iconic('link-intact') + 'Import from Link', fn: upload.start.url },
+		{ title: build.iconic('dropbox', 'ionicons') + 'Import from Dropbox', fn: upload.start.dropbox },
+		{ title: build.iconic('terminal') + 'Import from Server', fn: upload.start.server },
+		{ },
+		{ title: build.iconic('folder') + 'New Album', fn: album.add }
       ]
   }
   else if( lychee.role === 'user'){
      let items = [
-        { type: 'item', title: build.iconic('image') + 'Upload Photo', fn: function() { $('#upload_files').click() } },
-        { type: 'separator' },
-        { type: 'item', title: build.iconic('link-intact') + 'Import from Link', fn: upload.start.url },
+        { title: build.iconic('image') + 'Upload Photo', fn: () => $('#upload_files').click() },
+        { },
+        { title: build.iconic('link-intact') + 'Import from Link', fn: upload.start.url },
       ]
   }
 
@@ -40,26 +40,26 @@ contextMenu.settings = function(e) {
   var items;
   if( lychee.role === 'admin'){
 	let items = [
-        { type: 'item', title: build.iconic('person') + 'Change Password', fn: users.changePassword },
-        { type: 'item', title: build.iconic('person') + 'Manage Users', fn: users.manageUsers },
-		{ type: 'item', title: build.iconic('sort-ascending') + 'Change Sorting', fn: settings.setSorting },
-		{ type: 'item', title: build.iconic('dropbox', 'ionicons') + 'Set Dropbox', fn: settings.setDropboxKey },
-		{ type: 'separator' },
-		{ type: 'item', title: build.iconic('info') + 'About Lychee', fn: () => window.open(lychee.website) },
-		{ type: 'item', title: build.iconic('wrench') + 'Diagnostics', fn: () => window.open('plugins/check/') },
-		{ type: 'item', title: build.iconic('align-left') + 'Show Log', fn: () => window.open('plugins/displaylog/') },
-		{ type: 'separator' },
-		{ type: 'item', title: build.iconic('account-logout') + 'Sign Out', fn: lychee.logout }
+        { title: build.iconic('person') + 'Change Password', fn: users.changePassword },
+        { title: build.iconic('person') + 'Manage Users', fn: users.manageUsers },
+		{ title: build.iconic('sort-ascending') + 'Change Sorting', fn: settings.setSorting },
+		{ title: build.iconic('dropbox', 'ionicons') + 'Set Dropbox', fn: settings.setDropboxKey },
+		{ },
+		{ title: build.iconic('info') + 'About Lychee', fn: () => window.open(lychee.website) },
+		{ title: build.iconic('wrench') + 'Diagnostics', fn: () => window.open('plugins/check/') },
+		{ title: build.iconic('align-left') + 'Show Log', fn: () => window.open('plugins/displaylog/') },
+		{ },
+		{ title: build.iconic('account-logout') + 'Sign Out', fn: lychee.logout }
 	]
   }
   else if( lychee.role === 'user'){
       items = [
-        { type: 'item', title: build.iconic('person') + 'Change Password', fn: users.changePassword },
-        { type: 'item', title: build.iconic('sort-ascending') + 'Change Sorting', fn: settings.setSorting },
-        { type: 'separator' },
-        { type: 'item', title: build.iconic('info') + 'About Lychee', fn: function() { window.open(lychee.website) } },
-        { type: 'separator' },
-        { type: 'item', title: build.iconic('account-logout') + 'Sign Out', fn: lychee.logout }
+        { title: build.iconic('person') + 'Change Password', fn: users.changePassword },
+        { title: build.iconic('sort-ascending') + 'Change Sorting', fn: settings.setSorting },
+        { },
+        { title: build.iconic('info') + 'About Lychee', fn: function() { window.open(lychee.website) } },
+        { },
+        { title: build.iconic('account-logout') + 'Sign Out', fn: lychee.logout }
       ]; 
   }
   console.log("hej" + lychee.role);
@@ -83,9 +83,9 @@ contextMenu.album = function(albumID, e) {
 	let showMerge = (albums.json && albums.json.albums && Object.keys(albums.json.albums).length>1)
 
 	let items = [
-		{ type: 'item', title: build.iconic('pencil') + 'Rename', fn: () => album.setTitle([albumID]) },
-		{ type: 'item', title: build.iconic('collapse-left') + 'Merge', visible: showMerge, fn: () => { basicContext.close(); contextMenu.mergeAlbum(albumID, e) } },
-		{ type: 'item', title: build.iconic('trash') + 'Delete', fn: () => album.delete([albumID]) }
+		{ title: build.iconic('pencil') + 'Rename', fn: () => album.setTitle([albumID]) },
+		{ title: build.iconic('collapse-left') + 'Merge', visible: showMerge, fn: () => { basicContext.close(); contextMenu.mergeAlbum(albumID, e) } },
+		{ title: build.iconic('trash') + 'Delete', fn: () => album.delete([albumID]) }
 	]
 
 	$('.album[data-id="' + albumID + '"]').addClass('active')
@@ -109,10 +109,10 @@ contextMenu.albumMulti = function(albumIDs, e) {
 	let showMerge = (albums.json && albums.json.albums && Object.keys(albums.json.albums).length>1)
 
 	let items = [
-		{ type: 'item', title: build.iconic('pencil') + 'Rename All', fn: () => album.setTitle(albumIDs) },
-		{ type: 'item', title: build.iconic('collapse-left') + 'Merge All', visible: showMerge && autoMerge, fn: () => album.merge(albumIDs) },
-		{ type: 'item', title: build.iconic('collapse-left') + 'Merge', visible: showMerge && !autoMerge, fn: () => { basicContext.close(); contextMenu.mergeAlbum(albumIDs[0], e) } },
-		{ type: 'item', title: build.iconic('trash') + 'Delete All', fn: () => album.delete(albumIDs) }
+		{ title: build.iconic('pencil') + 'Rename All', fn: () => album.setTitle(albumIDs) },
+		{ title: build.iconic('collapse-left') + 'Merge All', visible: showMerge && autoMerge, fn: () => album.merge(albumIDs) },
+		{ title: build.iconic('collapse-left') + 'Merge', visible: showMerge && !autoMerge, fn: () => { basicContext.close(); contextMenu.mergeAlbum(albumIDs[0], e) } },
+		{ title: build.iconic('trash') + 'Delete All', fn: () => album.delete(albumIDs) }
 	]
 
 	items.push()
@@ -136,18 +136,18 @@ contextMenu.albumTitle = function(albumID, e) {
 
 				let title = lychee.html`<img class='cover' width='16' height='16' src='$${ this.thumbs[0] }'><div class='title'>$${ this.title }</div>`
 
-				if (this.id!=albumID) items.push({ type: 'item', title, fn: () => lychee.goto(this.id) })
+				if (this.id!=albumID) items.push({ title, fn: () => lychee.goto(this.id) })
 
 			})
 
       if( lychee.role === 'admin'){
-			items.unshift({ type: 'separator' })
-      }
+			items.unshift({ })
+		}
 
 		}
 
     if( lychee.role === 'admin'){
-		items.unshift({ type: 'item', title: build.iconic('pencil') + 'Rename', fn: () => album.setTitle([albumID]) })
+		items.unshift({ title: build.iconic('pencil') + 'Rename', fn: () => album.setTitle([albumID]) })
     }
 
 		basicContext.show(items, e.originalEvent, contextMenu.close)
@@ -175,7 +175,7 @@ contextMenu.mergeAlbum = function(albumID, e) {
 
 				let title = lychee.html`<img class='cover' width='16' height='16' src='$${ this.thumbs[0] }'><div class='title'>$${ this.title }</div>`
 
-				if (this.id!=albumID) items.push({ type: 'item', title, fn: () => album.merge([albumID, this.id]) })
+				if (this.id!=albumID) items.push({ title, fn: () => album.merge([albumID, this.id]) })
 
 			})
 
@@ -194,28 +194,27 @@ contextMenu.photo = function(photoID, e) {
 	// Notice for 'Move':
 	// fn must call basicContext.close() first,
 	// in order to keep the selection
-  var items;
 
   if (lychee.role == 'admin'){
      let items = [
-		{ type: 'item', title: build.iconic('star') + 'Star', fn: () => photo.setStar([photoID]) },
-		{ type: 'item', title: build.iconic('tag') + 'Tags', fn: () => photo.editTags([photoID]) },
-        { type: 'separator' },
-		{ type: 'item', title: build.iconic('pencil') + 'Rename', fn: () => photo.setTitle([photoID]) },
-		{ type: 'item', title: build.iconic('layers') + 'Duplicate', fn: () => photo.duplicate([photoID]) },
-		{ type: 'item', title: build.iconic('folder') + 'Move', fn: () => { basicContext.close(); contextMenu.move([photoID], e) } },
-		{ type: 'item', title: build.iconic('trash') + 'Delete', fn: () => photo.delete([photoID]) }
+		{ title: build.iconic('star') + 'Star', fn: () => photo.setStar([photoID]) },
+		{ title: build.iconic('tag') + 'Tags', fn: () => photo.editTags([photoID]) },
+        { },
+		{ title: build.iconic('pencil') + 'Rename', fn: () => photo.setTitle([photoID]) },
+		{ title: build.iconic('layers') + 'Duplicate', fn: () => photo.duplicate([photoID]) },
+		{ title: build.iconic('folder') + 'Move', fn: () => { basicContext.close(); contextMenu.move([photoID], e) } },
+		{ title: build.iconic('trash') + 'Delete', fn: () => photo.delete([photoID]) }
       ]
   } else if (lychee.role == 'user'){
       let items = [
-        { type: 'item', title: build.iconic('star') + 'Star', fn: () => photo.setStar([photoID]) },
-        { type: 'item', title: build.iconic('tag') + 'Tags', fn: () => photo.editTags([photoID]) },
-        { type: 'separator' },
-        { type: 'item', title: build.iconic('pencil') + 'Rename', fn: () => photo.setTitle([photoID]) },
-        { type: 'item', title: build.iconic('layers') + 'Duplicate', fn: () => photo.duplicate([photoID]) },
+        { title: build.iconic('star') + 'Star', fn: () => photo.setStar([photoID]) },
+        { title: build.iconic('tag') + 'Tags', fn: () => photo.editTags([photoID]) },
+        { },
+        { title: build.iconic('pencil') + 'Rename', fn: () => photo.setTitle([photoID]) },
+        { title: build.iconic('layers') + 'Duplicate', fn: () => photo.duplicate([photoID]) },
       ]
       if(album.json.erase == 1){
-          items.push({ type: 'item', title: build.iconic('trash') + 'Delete', fn: function() { photo.delete([photoID]) } });
+          items.push({ title: build.iconic('trash') + 'Delete', fn: function() { photo.delete([photoID]) } });
       }
   }
 
@@ -234,13 +233,13 @@ contextMenu.photoMulti = function(photoIDs, e) {
 	multiselect.stopResize()
 
 	let items = [
-		{ type: 'item', title: build.iconic('star') + 'Star All', fn: () => photo.setStar(photoIDs) },
-		{ type: 'item', title: build.iconic('tag') + 'Tag All', fn: () => photo.editTags(photoIDs) },
-		{ type: 'separator' },
-		{ type: 'item', title: build.iconic('pencil') + 'Rename All', fn: () => photo.setTitle(photoIDs) },
-		{ type: 'item', title: build.iconic('layers') + 'Duplicate All', fn: () => photo.duplicate(photoIDs) },
-		{ type: 'item', title: build.iconic('folder') + 'Move All', fn: () => { basicContext.close(); contextMenu.move(photoIDs, e) } },
-		{ type: 'item', title: build.iconic('trash') + 'Delete All', fn: () => photo.delete(photoIDs) }
+		{ title: build.iconic('star') + 'Star All', fn: () => photo.setStar(photoIDs) },
+		{ title: build.iconic('tag') + 'Tag All', fn: () => photo.editTags(photoIDs) },
+		{ },
+		{ title: build.iconic('pencil') + 'Rename All', fn: () => photo.setTitle(photoIDs) },
+		{ title: build.iconic('layers') + 'Duplicate All', fn: () => photo.duplicate(photoIDs) },
+		{ title: build.iconic('folder') + 'Move All', fn: () => { basicContext.close(); contextMenu.move(photoIDs, e) } },
+		{ title: build.iconic('trash') + 'Delete All', fn: () => photo.delete(photoIDs) }
 	]
 
 	basicContext.show(items, e.originalEvent, contextMenu.close)
@@ -250,21 +249,21 @@ contextMenu.photoMulti = function(photoIDs, e) {
 contextMenu.photoTitle = function(albumID, photoID, e) {
 
 	let items = [
-		{ type: 'item', title: build.iconic('pencil') + 'Rename', fn: () => photo.setTitle([photoID]) }
+		{ title: build.iconic('pencil') + 'Rename', fn: () => photo.setTitle([photoID]) }
 	]
 
 	let data = album.json
 
 	if (data.content!==false && data.num>1) {
 
-		items.push({ type: 'separator' })
+		items.push({ })
 
 		// Generate list of albums
 		$.each(data.content, function(index) {
 
 			let title = lychee.html`<img class='cover' width='16' height='16' src='$${ this.thumbUrl }'><div class='title'>$${ this.title }</div>`
 
-			if (this.id!=photoID) items.push({ type: 'item', title, fn: () => lychee.goto(albumID + '/' + this.id) })
+			if (this.id!=photoID) items.push({ title, fn: () => lychee.goto(albumID + '/' + this.id) })
 
 		})
 
@@ -282,8 +281,8 @@ contextMenu.photoMore = function(photoID, e) {
 	let showDownload = lychee.publicMode===false || ((album.json && album.json.downloadable && album.json.downloadable==='1') && lychee.publicMode===true)
 
 	let items = [
-		{ type: 'item', title: build.iconic('fullscreen-enter') + 'Full Photo', fn: () => window.open(photo.getDirectLink()) },
-		{ type: 'item', title: build.iconic('cloud-download') + 'Download', visible: showDownload, fn: () => photo.getArchive(photoID) }
+		{ title: build.iconic('fullscreen-enter') + 'Full Photo', fn: () => window.open(photo.getDirectLink()) },
+		{ title: build.iconic('cloud-download') + 'Download', visible: showDownload, fn: () => photo.getArchive(photoID) }
 	]
 
 	basicContext.show(items, e.originalEvent)
@@ -300,7 +299,7 @@ contextMenu.move = function(photoIDs, e) {
 
 			// Show only 'Add album' when no album available
 			items = [
-				{ type: 'item', title: 'New Album', fn: album.add }
+				{ title: 'New Album', fn: album.add }
 			]
 
 		} else {
@@ -312,15 +311,15 @@ contextMenu.move = function(photoIDs, e) {
 
 				let title = lychee.html`<img class='cover' width='16' height='16' src='$${ this.thumbs[0] }'><div class='title'>$${ this.title }</div>`
 
-				if (this.id!=album.getID()) items.push({ type: 'item', title, fn: () => photo.setAlbum(photoIDs, this.id) })
+				if (this.id!=album.getID()) items.push({ title, fn: () => photo.setAlbum(photoIDs, this.id) })
 
 			})
 
 			// Show Unsorted when unsorted is not the current album
 			if (album.getID()!=='0') {
 
-				items.unshift({ type: 'separator' })
-				items.unshift({ type: 'item', title: 'Unsorted', fn: () => photo.setAlbum(photoIDs, 0) })
+				items.unshift({ })
+				items.unshift({ title: 'Unsorted', fn: () => photo.setAlbum(photoIDs, 0) })
 
 			}
 
@@ -338,15 +337,15 @@ contextMenu.sharePhoto = function(photoID, e) {
 		iconClass = 'ionicons'
 
 	let items = [
-		{ type: 'item', title: `<input readonly id="link" value="${ link }">`, fn: () => {}, class: 'noHover' },
-		{ type: 'separator' },
-		{ type: 'item', title: build.iconic('twitter', iconClass) + 'Twitter', fn: () => photo.share(photoID, 'twitter') },
-		{ type: 'item', title: build.iconic('facebook', iconClass) + 'Facebook', fn: () => photo.share(photoID, 'facebook') },
-		{ type: 'item', title: build.iconic('envelope-closed') + 'Mail', fn: () => photo.share(photoID, 'mail') },
-		{ type: 'item', title: build.iconic('dropbox', iconClass) + 'Dropbox', fn: () => photo.share(photoID, 'dropbox') },
-		{ type: 'item', title: build.iconic('link-intact') + 'Direct Link', fn: () => window.open(photo.getDirectLink()) },
-		{ type: 'separator' },
-		{ type: 'item', title: build.iconic('ban') + 'Make Private', fn: () => photo.setPublic(photoID) }
+		{ title: `<input readonly id="link" value="${ link }">`, fn: () => {}, class: 'basicContext__item--noHover' },
+		{ },
+		{ title: build.iconic('twitter', iconClass) + 'Twitter', fn: () => photo.share(photoID, 'twitter') },
+		{ title: build.iconic('facebook', iconClass) + 'Facebook', fn: () => photo.share(photoID, 'facebook') },
+		{ title: build.iconic('envelope-closed') + 'Mail', fn: () => photo.share(photoID, 'mail') },
+		{ title: build.iconic('dropbox', iconClass) + 'Dropbox', fn: () => photo.share(photoID, 'dropbox') },
+		{ title: build.iconic('link-intact') + 'Direct Link', fn: () => window.open(photo.getDirectLink()) },
+		{ },
+		{ title: build.iconic('ban') + 'Make Private', fn: () => photo.setPublic(photoID) }
 	]
 
 	basicContext.show(items, e.originalEvent)
@@ -359,14 +358,14 @@ contextMenu.shareAlbum = function(albumID, e) {
 	let iconClass = 'ionicons'
 
 	let items = [
-		{ type: 'item', title: `<input readonly id="link" value="${ location.href }">`, fn: () => {}, class: 'noHover' },
-		{ type: 'separator' },
-		{ type: 'item', title: build.iconic('twitter', iconClass) + 'Twitter', fn: () => album.share('twitter') },
-		{ type: 'item', title: build.iconic('facebook', iconClass) + 'Facebook', fn: () => album.share('facebook') },
-		{ type: 'item', title: build.iconic('envelope-closed') + 'Mail', fn: () => album.share('mail') },
-		{ type: 'separator' },
-		{ type: 'item', title: build.iconic('pencil') + 'Edit Sharing', fn: () => album.setPublic(albumID, true, e) },
-		{ type: 'item', title: build.iconic('ban') + 'Make Private', fn: () => album.setPublic(albumID, false) }
+		{ title: `<input readonly id="link" value="${ location.href }">`, fn: () => {}, class: 'basicContext__item--noHover' },
+		{ },
+		{ title: build.iconic('twitter', iconClass) + 'Twitter', fn: () => album.share('twitter') },
+		{ title: build.iconic('facebook', iconClass) + 'Facebook', fn: () => album.share('facebook') },
+		{ title: build.iconic('envelope-closed') + 'Mail', fn: () => album.share('mail') },
+		{ },
+		{ title: build.iconic('pencil') + 'Edit Sharing', fn: () => album.setPublic(albumID, true, e) },
+		{ title: build.iconic('ban') + 'Make Private', fn: () => album.setPublic(albumID, false) }
 	]
 
 	basicContext.show(items, e.originalEvent)
