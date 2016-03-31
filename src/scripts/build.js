@@ -45,13 +45,13 @@ build.album = function(data) {
 
 	let html = ''
 
-	let { path: thumbPath, hasRetina: thumbRetina } = lychee.retinize(data.thumbs[0])
+	let { path: retinaThumbUrl, isPhoto } = lychee.retinize(data.thumbs[0])
 
 	html += lychee.html`
 	        <div class='album' data-id='$${ data.id }'>
-	            <img src='$${ data.thumbs[2] }' width='200' height='200' alt='thumb' data-overlay='false'>
-	            <img src='$${ data.thumbs[1] }' width='200' height='200' alt='thumb' data-overlay='false'>
-	            <img src='$${ thumbPath }' width='200' height='200' alt='thumb' data-overlay='$${ thumbRetina }'>
+	            <img src='$${ data.thumbs[2] }' width='200' height='200' alt='Photo thumbnail' data-overlay='false' draggable='false'>
+	            <img src='$${ data.thumbs[1] }' width='200' height='200' alt='Photo thumbnail' data-overlay='false' draggable='false'>
+	            <img src='$${ data.thumbs[0] }' srcset='$${ retinaThumbUrl } 1.5x' width='200' height='200' alt='Photo thumbnail' data-overlay='$${ isPhoto }' draggable='false'>
 	            <div class='overlay'>
 	                <h1 title='$${ data.title }'>$${ data.title }</h1>
 	                <a>$${ data.sysdate }</a>
@@ -82,11 +82,11 @@ build.photo = function(data) {
 
 	let html = ''
 
-	let { path: thumbPath, hasRetina: thumbRetina } = lychee.retinize(data.thumbUrl)
+	let { path: retinaThumbUrl } = lychee.retinize(data.thumbUrl)
 
 	html += lychee.html`
 	        <div class='photo' data-album-id='$${ data.album }' data-id='$${ data.id }'>
-	            <img src='$${ thumbPath }' width='200' height='200' alt='thumb'>
+	            <img src='$${ data.thumbUrl }' srcset='$${ retinaThumbUrl } 1.5x' width='200' height='200' alt='Photo thumbnail' draggable='false'>
 	            <div class='overlay'>
 	                <h1 title='$${ data.title }'>$${ data.title }</h1>
 	        `
@@ -113,29 +113,20 @@ build.photo = function(data) {
 
 }
 
-build.imageview = function(data, size, visibleControls) {
+build.imageview = function(data, visibleControls) {
 
-	let html = ''
+	let html      = '',
 
-    if (data.media_type==='video') {
+	if (data.media_type==='video') {
         html += `<video id='image' class='video' controls src='${data.url}'>This video format is not supported by your browser yet. <a href='${data.url}'>Download video</a></video>`
-    } else if (size==='big') {
-
-		if (visibleControls===true) html += lychee.html`<div id='image' style='background-image: url($${ data.url })'></div>`
-		else                        html += lychee.html`<div id='image' style='background-image: url($${ data.url });' class='full'></div>`
-
-	} else if (size==='medium') {
-
-		if (visibleControls===true) html += lychee.html`<div id='image' style='background-image: url($${ data.medium })'></div>`
-		else                        html += lychee.html`<div id='image' style='background-image: url($${ data.medium });' class='full'></div>`
-
-	} else if (size==='small') {
-
-		if (visibleControls===true) html += lychee.html`<div id='image' class='small' style='background-image: url($${ data.url }); width: $${ data.width }px; height: $${ data.height }px; margin-top: -$${ parseInt(data.height/2-20) }px; margin-left: -$${ data.width/2 }px;'></div>`
-		else                        html += lychee.html`<div id='image' class='small' style='background-image: url($${ data.url }); width: $${ data.width }px; height: $${ data.height }px; margin-top: -$${ parseInt(data.height/2) }px; margin-left: -$${ data.width/2 }px;'></div>`
-
+	} else {
+		hasMedium = data.medium!==''
+		if (hasMedium===false) {
+			html += lychee.html`<div id='image' class='$${ visibleControls===true ? '' : 'full' }'><div><img src='$${ data.url }' draggable='false'></div></div>`
+		} else {
+			html += lychee.html`<div id='image' class='$${ visibleControls===true ? '' : 'full' }'><div><img src='$${ data.url }' srcset='$${ data.medium } 1920w, $${ data.url } $${ data.width }w' draggable='false'></div></div>`
+		}
 	}
-
 	html += `
 	        <div class='arrow_wrapper arrow_wrapper--previous'><a id='previous'>${ build.iconic('caret-left') }</a></div>
 	        <div class='arrow_wrapper arrow_wrapper--next'><a id='next'>${ build.iconic('caret-right') }</a></div>
@@ -352,5 +343,3 @@ build.userModal = function(title, userid,  albums) {
 	return html;
 
 }
-
-

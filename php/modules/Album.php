@@ -69,14 +69,20 @@ class Album extends Module {
 		$album['title']		= $data['title'];
 		$album['public']	= $data['public'];
 
+		# Additional attributes
+		# Only part of $album when available
+		if (isset($data['description']))	$album['description'] = $data['description'];
+		if (isset($data['visible']))		$album['visible'] = $data['visible'];
+		if (isset($data['downloadable']))	$album['downloadable'] = $data['downloadable'];
+
 		# Parse date
 		$album['sysdate'] = date('F Y', $data['sysstamp']);
 
 		# Parse password
 		$album['password'] = ($data['password']=='' ? '0' : '1');
 
-		# Set placeholder for thumbs
-		$album['thumbs'] = array();
+		# Parse thumbs or set default value
+		$album['thumbs'] = (isset($data['thumbs']) ? explode(',', $data['thumbs']) : array());
 
 		return $album;
 
@@ -112,9 +118,9 @@ class Album extends Module {
       default:	
             #$query	= Database::prepare($this->database, "SELECT * FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
             $query = '';
-            if($_SESSION['role'] === 'admin'){
+            if ($_SESSION['role'] === 'admin') {
               $query	= Database::prepare($this->database, "SELECT * FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
-            }else{
+            } else {
               $query	= Database::prepare($this->database, "SELECT a.*, p.view, p.upload, p.erase FROM ? a JOIN ? p on ( a.id = p.album_id) WHERE id = '?' and p.user_id = '?' and p.view = '1' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $this->albumIDs, $_SESSION['userid']));
             }
 						$albums = $this->database->query($query);
@@ -126,8 +132,7 @@ class Album extends Module {
               $return['content'] = false;
               return $return;
             }
-						$return['sysdate']	= date('d M. Y', $return['sysstamp']);
-						$return['password']	= ($return['password']=='' ? '0' : '1');
+						$return = Album::prepareData($return);
 						$query	= Database::prepare($this->database, "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url FROM ? WHERE album = '?' " . $this->settings['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, $this->albumIDs));
 						break;
 
