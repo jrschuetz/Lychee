@@ -1,4 +1,5 @@
 var	gulp    = require('gulp'),
+        debug   = require('gulp-debug')
 	plugins = require('gulp-load-plugins')(),
 	paths   = {}
 
@@ -45,6 +46,7 @@ gulp.task('view--js', function() {
 	return gulp.src(paths.view.js)
 	           .pipe(plugins.concat('_view--javascript.js', {newLine: "\n"}))
 	           .pipe(babel)
+                   .pipe(debug())
 	           .on('error', catchError)
 	           .pipe(gulp.dest('../dist/'))
 
