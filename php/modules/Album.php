@@ -214,7 +214,7 @@ class Album extends Module {
 		# Execute query
 		$albums = $this->database->query($query);
 		if (!$albums) {
-			Log::error($this->$database, __METHOD__, __LINE__, 'Could not get all albums (' . $this->$database->error . ')');
+			Log::error($this->database, __METHOD__, __LINE__, 'Could not get all albums (' . $this->database->error . ')');
 			exit('Error: ' . $this->database->error);
 		}
 
