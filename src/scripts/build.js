@@ -115,7 +115,7 @@ build.photo = function(data) {
 
 build.imageview = function(data, visibleControls) {
 
-	let html      = '',
+	let html      = ''
 
 	if (data.media_type==='video') {
         html += `<video id='image' class='video' controls src='${data.url}'>This video format is not supported by your browser yet. <a href='${data.url}'>Download video</a></video>`
