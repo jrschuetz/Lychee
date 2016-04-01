@@ -58,17 +58,16 @@ class Admin extends Access {
 			case 'Album::getArchive':		$this->getAlbumArchive(); break;
 			case 'Photo::getArchive':		$this->getPhotoArchive(); break;
 
-      # User functions
-      case 'Users::get':              $this->getUsers(); break;
-      case 'Users::addUser':          $this->addUser(); break;
-      case 'Users::deleteUser':       $this->deleteUser(); break;
-      case 'Users::changePassword':   $this->changePassword(); break;
-      case 'Users::getPrivileges':    $this->getPrivileges(); break;
-      case 'Users::changePrivileges': $this->changePrivileges(); break;
+			# User functions
+			case 'Users::get':              $this->getUsers(); break;
+			case 'Users::addUser':          $this->addUser(); break;
+			case 'Users::deleteUser':       $this->deleteUser(); break;
+      			case 'Users::changePassword':   $this->changePassword(); break;
+			case 'Users::getPrivileges':    $this->getPrivileges(); break;
+			case 'Users::changePrivileges': $this->changePrivileges(); break;
 
 			# Error
-			default:						exit('Error: Admin function not found! Please check the spelling of the called function.');
-											return false; break;
+			default:	exit('Error: Admin function not found! Please check the spelling of the called function.'); return false; break;
 
 		}
 

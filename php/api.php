@@ -57,8 +57,6 @@ if (!empty($_POST['function'])||!empty($_GET['function'])) {
 	if (isset($_POST['function']))	$fn = $_POST['function'];
 	else							$fn = $_GET['function'];
 
-  error_log($_SESSION['login']. " " . $_SESSION['identifier'] . " " . $_SESSION['role'] . " ". $settings['identifier'] );
-
   $login = $_SESSION['login'];
   $id = $_SESSION['identifier'];
   $role = $_SESSION['role'];

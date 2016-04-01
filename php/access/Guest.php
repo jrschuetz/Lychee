@@ -16,11 +16,11 @@ class Guest extends Access {
 
 			# Album functions
 			case 'Album::getAll':		$this->getAlbums(); break;
-			case 'Album::get':			$this->getAlbum(); break;
+			case 'Album::get':		$this->getAlbum(); break;
 			case 'Album::getPublic':	$this->checkAlbumAccess(); break;
 
 			# Photo functions
-			case 'Photo::get':			$this->getPhoto(); break;
+			case 'Photo::get':		$this->getPhoto(); break;
 
 			# Session functions
 			case 'Session::init':		$this->init(); break;
@@ -32,9 +32,7 @@ class Guest extends Access {
 			case 'Photo::getArchive':	$this->getPhotoArchive(); break;
 
 			# Error
-			default:					exit('Error: Guest function not found! Please check the spelling of the called 
-function.');
-										break;
+			default:			exit('Error: Guest function not found! Please check the spelling of the called function.'); break;
 
 		}
 

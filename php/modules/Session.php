@@ -115,7 +115,7 @@ class Session extends Module {
     $users = new Users($this->database);
 
 		if ($result = $users->checkLogin($username,$password)) {
-				$_SESSION['login']		= true;
+				$_SESSION['login']	= true;
 				$_SESSION['identifier']	= $this->settings['identifier'];
 				$_SESSION['username']	= $username;
 				$_SESSION['userid']	= $result['userid'];
@@ -150,14 +150,14 @@ class Session extends Module {
     $query = Database::prepare($this->database, "SELECT * FROM ?", array(LYCHEE_TABLE_USERS));
     $result = $this->database->query($query);
 		if($result->num_rows === 0) {
-				$_SESSION['login']		= true;
+				$_SESSION['login']      = true;
 				$_SESSION['identifier']	= $this->settings['identifier'];
 				$_SESSION['role']	= 'admin';
 				return true;
 		}
     /*
 		if($this->settings['username']==='' && $this->settings['password']==='') {
-				$_SESSION['login']		= true;
+				$_SESSION['login']	= true;
 				$_SESSION['identifier']	= $this->settings['identifier'];
 				return true;
 		}
