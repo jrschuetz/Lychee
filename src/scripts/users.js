@@ -10,8 +10,8 @@ users.addUser = function() {
 	var action,
 		msg = '';
 
-	action = function(data) {
-    console.log(data);
+	action = function (data) {
+                console.log(data);
 
 		var params,
 			username = data.username,
@@ -35,7 +35,7 @@ users.addUser = function() {
 		params = {
 			username,
 			password,
-      role
+			role
 		}
 
 		api.post('Users::addUser', params, function(data) {
@@ -68,8 +68,8 @@ users.addUser = function() {
 	msg = `
 			<p>
 				Enter a username and password for the new user:
-				<input data-name='username' class='text' type='text' placeholder='New Username' value=''>
-				<input data-name='password' class='text' type='password' placeholder='New Password' value=''>
+				<input name='username' class='text' type='text' placeholder='New Username' value=''>
+				<input name='password' class='text' type='password' placeholder='New Password' value=''>
 			</p>
 			<p>
 				Role:
@@ -195,9 +195,9 @@ users.changePassword = function() {
 	msg = `
 			<p>
 				Enter your old password and the new password:
-				<input data-name='oldPassword' class='text' type='password' placeholder='Old Password' value=''>
-				<input data-name='newPassword' class='text' type='password' placeholder='New Password' value=''>
-				<input data-name='newPwRepeat' class='text' type='password' placeholder='Repeat new password' value=''>
+				<input name='oldPassword' class='text' type='password' placeholder='Old Password' value=''>
+				<input name='newPassword' class='text' type='password' placeholder='New Password' value=''>
+				<input name='newPwRepeat' class='text' type='password' placeholder='Repeat new password' value=''>
 			</p>
 			`
 
@@ -283,7 +283,7 @@ users.changePrivileges = function(userid, albumid, privilege, state){
             console.log("Failed to set privileges");
         }
         else{
-          console.log("SEt privileges");
+          console.log("Set privileges");
         }
 
     });
