@@ -15,7 +15,7 @@ lychee = {
 
 	publicMode      : false,
 	viewMode        : false,
-	debugMode       : false,
+	debugMode       : true,
 
 	checkForUpdates : '1',
 	sortingPhotos   : '',
@@ -25,10 +25,10 @@ lychee = {
 	dropbox         : false,
 	dropboxKey      : '',
 
-	content			: $('#content'),
-	imageview		: $('#imageview'),
+	content		: $('#content'),
+	imageview	: $('#imageview'),
 
-	role			: 'guest'
+	role		: 'guest'
 
 }
 
@@ -39,6 +39,11 @@ lychee.init = function() {
 	}
 
 	api.post('Session::init', params, function(data) {
+
+
+        console.log('lychee.js')
+        console.log(data)
+        console.log(data.status)
 
 		// Check status
 		// 0 = No configuration
@@ -54,7 +59,7 @@ lychee.init = function() {
 			lychee.dropboxKey      = data.config.dropboxKey      || ''
 			lychee.location        = data.config.location        || ''
 			lychee.checkForUpdates = data.config.checkForUpdates || '1'
-      		lychee.role = (localStorage.getItem('lychee_role')!==null) ? localStorage.getItem('lychee_role') : 'guest';
+	      		lychee.role = (localStorage.getItem('lychee_role')!==null) ? localStorage.getItem('lychee_role') : 'guest';
 
       		/*
       		if (lychee.role !== 'admin') {
@@ -406,7 +411,7 @@ lychee.escapeHTML = function(html = '') {
 
 lychee.html = function(literalSections, ...substs) {
 
-	// Use raw literal sections: we don’t want
+	// Use raw literal sections: we don't want
 	// backslashes (\n etc.) to be interpreted
 	let raw    = literalSections.raw,
 	    result = ''

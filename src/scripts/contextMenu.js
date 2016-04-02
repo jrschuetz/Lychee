@@ -8,8 +8,9 @@ contextMenu = {}
 contextMenu.add = function(e) {
 
   var items;
+
   if( lychee.role === 'admin'){
-	let items = [
+	items = [
 		{ title: build.iconic('image') + 'Upload Photo', fn: () => $('#upload_files').click() },
 		{ },
 		{ title: build.iconic('link-intact') + 'Import from Link', fn: upload.start.url },
@@ -18,30 +19,28 @@ contextMenu.add = function(e) {
 		{ },
 		{ title: build.iconic('folder') + 'New Album', fn: album.add }
       ]
-  }
-  else if( lychee.role === 'user'){
-     let items = [
+  } else if ( lychee.role === 'user') {
+     items = [
         { title: build.iconic('image') + 'Upload Photo', fn: () => $('#upload_files').click() },
         { },
         { title: build.iconic('link-intact') + 'Import from Link', fn: upload.start.url },
       ]
   }
 
-	basicContext.show(items, e.originalEvent);
+  basicContext.show(items, e.originalEvent)
 
-	basicContext.show(items, e.originalEvent)
-
-	upload.notify()
+  upload.notify()
 
 }
 
 contextMenu.settings = function(e) {
 
   var items;
-  if( lychee.role === 'admin'){
-	let items = [
-        { title: build.iconic('person') + 'Change Password', fn: users.changePassword },
-        { title: build.iconic('person') + 'Manage Users', fn: users.manageUsers },
+
+  if( lychee.role === 'admin' ) {
+	items = [
+        	{ title: build.iconic('person') + 'Change Password', fn: users.changePassword },
+	        { title: build.iconic('person') + 'Manage Users', fn: users.manageUsers },
 		{ title: build.iconic('sort-ascending') + 'Change Sorting', fn: settings.setSorting },
 		{ title: build.iconic('dropbox', 'ionicons') + 'Set Dropbox', fn: settings.setDropboxKey },
 		{ },
@@ -51,20 +50,18 @@ contextMenu.settings = function(e) {
 		{ },
 		{ title: build.iconic('account-logout') + 'Sign Out', fn: lychee.logout }
 	]
+  }  else if ( lychee.role === 'user' ) {
+      	items = [
+        	{ title: build.iconic('person') + 'Change Password', fn: users.changePassword },
+	        { title: build.iconic('sort-ascending') + 'Change Sorting', fn: settings.setSorting },
+        	{ },
+	        { title: build.iconic('info') + 'About Lychee', fn: function() { window.open(lychee.website) } },
+        	{ },
+	        { title: build.iconic('account-logout') + 'Sign Out', fn: lychee.logout }
+      ]
   }
-  else if( lychee.role === 'user'){
-      items = [
-        { title: build.iconic('person') + 'Change Password', fn: users.changePassword },
-        { title: build.iconic('sort-ascending') + 'Change Sorting', fn: settings.setSorting },
-        { },
-        { title: build.iconic('info') + 'About Lychee', fn: function() { window.open(lychee.website) } },
-        { },
-        { title: build.iconic('account-logout') + 'Sign Out', fn: lychee.logout }
-      ]; 
-  }
-  console.log("hej" + lychee.role);
 
-	basicContext.show(items, e.originalEvent)
+  basicContext.show(items, e.originalEvent)
 
 }
 
