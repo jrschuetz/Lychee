@@ -113,7 +113,9 @@ gulp.task('main--js', function() {
 
 	return gulp.src(paths.main.js)
 	           .pipe(plugins.concat('_main--javascript.js', {newLine: "\n"}))
-	           .pipe(babel)
+	           .pipe(debug())
+		   .pipe(babel)
+                   .pipe(debug())
 	           .on('error', catchError)
 	           .pipe(gulp.dest('../dist/'))
 
