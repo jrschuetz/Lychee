@@ -15,7 +15,7 @@ lychee = {
 
 	publicMode      : false,
 	viewMode        : false,
-	debugMode       : true,
+	debugMode       : false,
 
 	checkForUpdates : '1',
 	sortingPhotos   : '',
@@ -25,7 +25,7 @@ lychee = {
 	dropbox         : false,
 	dropboxKey      : '',
 
-	content		: $('#content'),
+	content		: $('.content'),
 	imageview	: $('#imageview'),
 
 	role		: 'guest'
@@ -39,11 +39,6 @@ lychee.init = function() {
 	}
 
 	api.post('Session::init', params, function(data) {
-
-
-        console.log('lychee.js')
-        console.log(data)
-        console.log(data.status)
 
 		// Check status
 		// 0 = No configuration
@@ -99,7 +94,6 @@ lychee.init = function() {
 
 		$(window).bind('popstate', lychee.load)
 		lychee.load()
-
 	})
 
 }
@@ -116,7 +110,7 @@ lychee.login = function(data) {
 
 	api.post('Session::login', params, function(data) {
 
-		if (data!="false") {
+		if (data===true) {
 
 			// Use 'try' to catch a thrown error when Safari is in private mode
 			try {
@@ -206,7 +200,6 @@ lychee.load = function() {
 	if (hash[1]!=null) photoID = hash[1]
 
 	if (albumID && photoID) {
-
 		// Trash data
 		photo.json = null
 
@@ -216,7 +209,6 @@ lychee.load = function() {
 			album.load(albumID, true)
 		}
 		photo.load(photoID, albumID)
-
 	} else if (albumID) {
 
 		// Trash data
@@ -415,7 +407,6 @@ lychee.html = function(literalSections, ...substs) {
 	// backslashes (\n etc.) to be interpreted
 	let raw    = literalSections.raw,
 	    result = ''
-
 	substs.forEach((subst, i) => {
 
 		// Retrieve the literal section preceding

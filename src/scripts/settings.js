@@ -174,8 +174,8 @@ settings.createLogin = function() {
 					}
 				})
 
-			}else {
-        lychee.load();
+			} else {
+        			lychee.load();
 			}
 
 		})
@@ -185,8 +185,8 @@ settings.createLogin = function() {
 	let msg = `
 	          <p>
 	              Enter a username and password for your installation:
-				<input name='username' class='text' type='text' placeholder='New Username' value=''>
-				<input name='password' class='text' type='password' placeholder='New Password' value=''>
+	              <input name='username' class='text' type='text' placeholder='New Username' value=''>
+	              <input name='password' class='text' type='password' placeholder='New Password' value=''>
 	          </p>
 	          `
 
