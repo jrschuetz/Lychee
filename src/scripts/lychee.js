@@ -39,7 +39,6 @@ lychee.init = function() {
 	}
 
 	api.post('Session::init', params, function(data) {
-
 		// Check status
 		// 0 = No configuration
 		// 1 = Logged out
@@ -54,13 +53,11 @@ lychee.init = function() {
 			lychee.dropboxKey      = data.config.dropboxKey      || ''
 			lychee.location        = data.config.location        || ''
 			lychee.checkForUpdates = data.config.checkForUpdates || '1'
-	      		lychee.role = (localStorage.getItem('lychee_role')!==null) ? localStorage.getItem('lychee_role') : 'guest';
+	      	lychee.role = (localStorage.getItem('lychee_role')!==null) ? localStorage.getItem('lychee_role') : 'guest';
 
-      		/*
       		if (lychee.role !== 'admin') {
         		$('#tools_album #button_trash_album').remove();
-      		}
-      		*/
+      		}      		
 
 			// Show dialog when there is no username and password
 			if (data.config.login===false) {
@@ -109,8 +106,7 @@ lychee.login = function(data) {
 	}
 
 	api.post('Session::login', params, function(data) {
-
-		if (data===true) {
+		if (data!==false) {
 
 			// Use 'try' to catch a thrown error when Safari is in private mode
 			try {
