@@ -337,54 +337,53 @@ class Admin extends Access {
 
 	}
 
-  private function addUser(){
-
-      Module::dependencies(isset($_POST['username'], $_POST['password'], $_POST['role']));
-      $users = new Users($this->database);
-      echo $users->addUser($_POST['username'], $_POST['password'], $_POST['role']);
-  
-  }
-
-  private function deleteUser(){
-
-      Module::dependencies(isset($_POST['username'] ));
-      $users = new Users($this->database);
-      echo $users->deleteUser($_POST['username']);
-
-  }
-
-  private function changePassword(){
-
-      Module::dependencies(isset($_SESSION['username'], $_POST['oldPassword'], $_POST['newPassword'], $_POST['newPwRepeat'] ));
-      $users = new Users($this->database);
-      echo $users->changePassword( $_SESSION['username'], $_POST['oldPassword'], $_POST['newPassword'],$_POST['newPwRepeat']);
-
-  }
-
-  private function getUsers(){
-
-      $username = (isset($_POST['username'])) ? $_POST['username'] : '';
-      $users = new Users($this->database);
-      echo $users->get($username);
-
-  }
-
-  private function getPrivileges(){
-
-      Module::dependencies(isset($_POST['userid']));
-      $users = new Users($this->database);
-      echo json_encode($users->getPrivileges($_POST['userid']));
-
-  }
-
-
-  private function changePrivileges(){
-
-      Module::dependencies(isset($_POST['userid'], $_POST['albumid'], $_POST['privilege'] , $_POST['state']));
-      $users = new Users($this->database);
-      echo $users->changePrivileges($_POST['userid'], $_POST['albumid'], $_POST['privilege'] , $_POST['state']);
-
-  }
-
+    private function addUser(){
+    
+        Module::dependencies(isset($_POST['username'], $_POST['password'], $_POST['role']));
+        $users = new Users($this->database);
+        echo $users->addUser($_POST['username'], $_POST['password'], $_POST['role']);
+    
+    }
+    
+    private function deleteUser(){
+    
+        Module::dependencies(isset($_POST['username'] ));
+        $users = new Users($this->database);
+        echo $users->deleteUser($_POST['username']);
+    
+    }
+    
+    private function changePassword(){
+    
+        Module::dependencies(isset($_SESSION['username'], $_POST['oldPassword'], $_POST['newPassword'], $_POST['newPwRepeat'] ));
+        $users = new Users($this->database);
+        echo $users->changePassword( $_SESSION['username'], $_POST['oldPassword'], $_POST['newPassword'],$_POST['newPwRepeat']);
+    
+    }
+    
+    private function getUsers(){
+    
+        $username = (isset($_POST['username'])) ? $_POST['username'] : '';
+        $users = new Users($this->database);
+        echo $users->get($username);
+    
+    }
+    
+    private function getPrivileges(){
+    
+        Module::dependencies(isset($_POST['userid']));
+        $users = new Users($this->database);
+        echo json_encode($users->getPrivileges($_POST['userid']));
+    
+    }
+    
+    
+    private function changePrivileges(){
+    
+        Module::dependencies(isset($_POST['userid'], $_POST['albumid'], $_POST['privilege'] , $_POST['state']));
+        $users = new Users($this->database);
+        echo $users->changePrivileges($_POST['userid'], $_POST['albumid'], $_POST['privilege'] , $_POST['state']);
+    
+    }
 
 }

@@ -51,8 +51,8 @@ class User extends Access {
 			case 'Album::getArchive':		$this->getAlbumArchive(); break;
 			case 'Photo::getArchive':		$this->getPhotoArchive(); break;
 
-      # User functions
-      case 'Users::changePassword':$this->changePassword(); break;
+            # User functions
+            case 'Users::changePassword':$this->changePassword(); break;
 
 			# Error
 			default:						exit('Error: Function not found! Please check the spelling of the called function.');
@@ -224,8 +224,8 @@ class User extends Access {
 	private function setLogin() {
 
 		Module::dependencies(isset($_POST['username'], $_POST['password']));
-    $this->users = new Users($this->database);
-    echo $this->users->addUser($_POST['username'], $_POST['password'], 'admin');
+        $this->users = new Users($this->database);
+        echo $this->users->addUser($_POST['username'], $_POST['password'], 'admin');
 
 	}
 
@@ -241,8 +241,8 @@ class User extends Access {
 		else						echo false;
 
 	}
+    
 	# Get functions
-
 	private function getAlbumArchive() {
 
 		Module::dependencies(isset($_GET['albumID']));
@@ -258,12 +258,13 @@ class User extends Access {
 		$photo->getArchive();
 
 	}
-  private function changePassword(){
-
-      Module::dependencies(isset($_SESSION['username'], $_POST['oldPassword'], $_POST['newPassword'], $_POST['newPwRepeat'] ));
-      $users = new Users($this->database);
-      echo $users->changePassword( $_SESSION['username'], $_POST['oldPassword'], $_POST['newPassword'],$_POST['newPwRepeat']);
-
-  }
+    
+    private function changePassword(){
+    
+        Module::dependencies(isset($_SESSION['username'], $_POST['oldPassword'], $_POST['newPassword'], $_POST['newPwRepeat'] ));
+        $users = new Users($this->database);
+        echo $users->changePassword( $_SESSION['username'], $_POST['oldPassword'], $_POST['newPassword'],$_POST['newPwRepeat']);
+    
+    }
 
 }

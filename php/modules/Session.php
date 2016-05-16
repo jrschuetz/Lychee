@@ -45,7 +45,7 @@ class Session extends Module {
 
 		# Return settings
 		$return['config'] = $this->settings;
-
+ 
 		# Remove username and password from response
 		unset($return['config']['username']);
 		unset($return['config']['password']);
@@ -57,6 +57,7 @@ class Session extends Module {
 		$return['config']['location'] = LYCHEE;
 
 		# Check if login credentials exist and login if they don't
+ 
 		if ($this->noLogin()===true) {
 			$public = false;
 			$return['config']['login'] = false;
@@ -111,8 +112,8 @@ class Session extends Module {
 		$this->plugins(__METHOD__, 0, func_get_args());
 
 
-    # Check the login
-    $users = new Users($this->database);
+        # Check the login
+        $users = new Users($this->database);
 
 		if ($result = $users->checkLogin($username,$password)) {
 				$_SESSION['login']	= true;
@@ -131,7 +132,7 @@ class Session extends Module {
 				return array('role' => $_SESSION['role']);
 		}
 
-  	# No login
+  	    # No login
 		if ($this->noLogin()===true) return true;
 
 		# Call plugins
@@ -147,21 +148,22 @@ class Session extends Module {
 		self::dependencies(isset($this->settings));
 
 		# Check if login credentials exist and login if they don't
-    $query = Database::prepare($this->database, "SELECT * FROM ?", array(LYCHEE_TABLE_USERS));
-    $result = $this->database->query($query);
-		if($result->num_rows === 0) {
+        $query = Database::prepare($this->database, "SELECT * FROM ?", array(LYCHEE_TABLE_USERS));
+        $result = $this->database->query($query);
+		
+        if($result->num_rows === 0) {
 				$_SESSION['login']      = true;
 				$_SESSION['identifier']	= $this->settings['identifier'];
 				$_SESSION['role']	= 'admin';
 				return true;
 		}
-    /*
-		if($this->settings['username']==='' && $this->settings['password']==='') {
-				$_SESSION['login']	= true;
-				$_SESSION['identifier']	= $this->settings['identifier'];
-				return true;
-		}
-     */
+        /*
+    		if($this->settings['username']==='' && $this->settings['password']==='') {
+    				$_SESSION['login']	= true;
+    				$_SESSION['identifier']	= $this->settings['identifier'];
+    				return true;
+    		}
+         */
 
 		return false;
 

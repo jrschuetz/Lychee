@@ -25,7 +25,7 @@ if (!empty($_POST['function'])||!empty($_GET['function'])) {
 
 		define('LYCHEE_ACCESS_INSTALLATION', true);
 
-		$installation = new Installation(null, null, null);
+	    $installation = new Installation(null, null, null);
 		$installation->check($_POST['function']);
 
 		exit();
@@ -57,30 +57,30 @@ if (!empty($_POST['function'])||!empty($_GET['function'])) {
 	if (isset($_POST['function']))	$fn = $_POST['function'];
 	else							$fn = $_GET['function'];
 
-  $login = $_SESSION['login'];
-  $id = $_SESSION['identifier'];
-  $role = $_SESSION['role'];
+    $login = $_SESSION['login'];
+    $id = $_SESSION['identifier'];
+    $role = $_SESSION['role'];
+    
+    // Special case when the id in the session is "", this is when the identifier has not yet been created (since its created in a database update script which is run in session::init)
+    if ((isset($login) && $login === true) && 
+        ($id === "" || (isset($id) && $id === $settings['identifier'])) && 
+        (isset($role) && $role === "admin"))
+    {
 
-  // Spoecial case when the id in the session is "", this is when the identifier has not yet been created (since its created in a database update script which is run in session::init)
-  if ((isset($login) && $login === true) && 
-     ($id === "" || (isset($id) && $id === $settings['identifier'])) && 
-      (isset($role) && $role === "admin"))
-  {
+	    ###
+	    # Admin Access
+	    # Full access to Lychee. Only with correct password/session.
+	    ###
+        
+	    define('LYCHEE_ACCESS_ADMIN', true);
+        
+	    $admin = new Admin($database, $plugins, $settings);
+	    $admin->check($fn);
 
-		###
-		# Admin Access
-		# Full access to Lychee. Only with correct password/session.
-		###
-
-		define('LYCHEE_ACCESS_ADMIN', true);
-
-		$admin = new Admin($database, $plugins, $settings);
-		$admin->check($fn);
-
-  }else if ((isset($login) && $login === true) && 
-      ((isset($id) && $id === $settings['identifier'])) && 
-      (isset($role) && $role === "user"))
-  {
+    } else if ((isset($login) && $login === true) && 
+        ((isset($id) && $id === $settings['identifier'])) && 
+        (isset($role) && $role === "user"))
+    {
 
 		###
 		# User Access
@@ -92,8 +92,7 @@ if (!empty($_POST['function'])||!empty($_GET['function'])) {
 		$user = new User($database, $plugins, $settings);
 		$user->check($fn);
 
-
-  }else {
+    } else {
 
 		###
 		# Guest Access
@@ -104,7 +103,7 @@ if (!empty($_POST['function'])||!empty($_GET['function'])) {
 
 		$guest = new Guest($database, $plugins, $settings);
 		$guest->check($fn);
-
+        
 	}
 
 } else {

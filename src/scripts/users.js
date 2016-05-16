@@ -11,7 +11,6 @@ users.addUser = function() {
 		msg = '';
 
 	action = function (data) {
-                console.log(data);
 
 		var params,
 			username = data.username,
@@ -110,7 +109,6 @@ users.deleteUser = function(username){
 
 	api.post('Users::deleteUser', params, function(data) {
 
-		console.log(data);
 		if (data!==true) {
 
 			basicModal.show({
@@ -139,7 +137,6 @@ users.changePassword = function() {
 
 	action = function(data) {
 
-		console.log(data);
 		var params,
 			oldPassword = data.oldPassword,
 			newPassword = data.newPassword,
@@ -253,8 +250,6 @@ users.manageUser = function(username, userid){
 	api.post('Users::getPrivileges', params, function(data) {
 
 		if (data!==true) {
-
-			console.log(data.albums);
 
 			basicModal.show({
 				body: build.userModal(username, userid, JSON.parse(data)),
