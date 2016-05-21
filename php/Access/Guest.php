@@ -1,181 +1,147 @@
 <?php
+namespace Lychee\Access;
+use Lychee\Modules\Album;
+use Lychee\Modules\Albums;
+use Lychee\Modules\Photo;
+use Lychee\Modules\Response;
+use Lychee\Modules\Session;
+use Lychee\Modules\Validator;
 
-###
-# @name			Guest Access (Public Mode)
-# @copyright	2015 by Tobias Reich
-###
+final class Guest extends Access {
 
-if (!defined('LYCHEE')) exit('Error: Direct access is not allowed!');
-if (!defined('LYCHEE_ACCESS_GUEST')) exit('Error: You are not allowed to access this area!');
-
-class Guest extends Access {
-
-	public function check($fn) {
+	public static function init($fn) {
 
 		switch ($fn) {
+			// Albums functions
+			case 'Albums::get':       self::getAlbumsAction(); break;
+			// Album functions
+			case 'Album::get':		    self::getAlbumAction(); break;
+			case 'Album::getPublic':	self::checkAlbumAccessAction(); break;
 
-			# Album functions
-			case 'Album::getAll':		$this->getAlbums(); break;
-			case 'Album::get':		$this->getAlbum(); break;
-			case 'Album::getPublic':	$this->checkAlbumAccess(); break;
+			// Photo functions
+			case 'Photo::get':		    self::getPhotoAction(); break;
 
-			# Photo functions
-			case 'Photo::get':		$this->getPhoto(); break;
+			// Session functions
+			case 'Session::init':		self::initAction(); break;
+			case 'Session::login':		self::loginAction(); break;
+			case 'Session::logout':		self::logoutAction(); break;
 
-			# Session functions
-			case 'Session::init':		$this->init(); break;
-			case 'Session::login':		$this->login(); break;
-			case 'Session::logout':		$this->logout(); break;
-
-			# $_GET functions
-			case 'Album::getArchive':	$this->getAlbumArchive(); break;
-			case 'Photo::getArchive':	$this->getPhotoArchive(); break;
-
-			# Error
-			default:			exit('Error: Guest function not found! Please check the spelling of the called function.'); break;
-
+			// $_GET functions
+			case 'Album::getArchive':	self::getAlbumArchiveAction(); break;
+			case 'Photo::getArchive':	self::getPhotoArchiveAction(); break;
 		}
 
-		return true;
-
+		self::fnNotFound();
 	}
 
-	# Album functions
-
-	private function getAlbums() {
-
-		$album = new Album($this->database, $this->plugins, $this->settings, null);
-		echo json_encode($album->getAll(true));
-
+	// Albums functions
+	private static function getAlbumsAction() {
+    
+		$albums = new Albums();
+		Response::json($albums->get(true));
 	}
 
-	private function getAlbum() {
+	// Album functions
+	private static function getAlbumAction() {
+    
+		Validator::required(isset($_POST['albumID'], $_POST['password']), __METHOD__);
+		$album = new Album($_POST['albumID']);
 
-		Module::dependencies(isset($_POST['albumID'], $_POST['password']));
-		$album = new Album($this->database, $this->plugins, $this->settings, $_POST['albumID']);
-
-		if ($album->getPublic()) {
-
-			# Album public
-			if ($album->checkPassword($_POST['password']))	echo json_encode($album->get());
-			else											echo 'Warning: Wrong password!';
-
+		if ($album->getPublic()===true) {
+			// Album public
+			if ($album->checkPassword($_POST['password'])===true) Response::json($album->get());
+			else                                                  Response::warning('Wrong password!');
 		} else {
-
-			# Album private
-			echo 'Warning: Album private!';
-
+			// Album private
+			Response::warning('Album private!');
 		}
-
+        
 	}
 
-	private function checkAlbumAccess() {
+	private static function checkAlbumAccessAction() {
 
-		Module::dependencies(isset($_POST['albumID'], $_POST['password']));
-		$album = new Album($this->database, $this->plugins, $this->settings, $_POST['albumID']);
+		Validator::required(isset($_POST['albumID'], $_POST['password']), __METHOD__);
+		$album = new Album($_POST['albumID']);
 
-		if ($album->getPublic()) {
-
-			# Album public
-			if ($album->checkPassword($_POST['password']))	echo true;
-			else											echo false;
-
+		if ($album->getPublic()===true) {
+			// Album public
+			if ($album->checkPassword($_POST['password'])===true) Response::json(true);
+			else                                                  Response::json(false);
 		} else {
-
-			# Album private
-			echo false;
-
+			// Album private
+			Response::json(false);
 		}
-
+        
 	}
 
-	# Photo functions
-
-	private function getPhoto() {
-
-		Module::dependencies(isset($_POST['photoID'], $_POST['albumID'], $_POST['password']));
-		$photo = new Photo($this->database, $this->plugins, null, $_POST['photoID']);
+	// Photo functions
+	private static function getPhotoAction() {
+    
+		Validator::required(isset($_POST['photoID'], $_POST['albumID'], $_POST['password']), __METHOD__);
+		$photo = new Photo($_POST['photoID']);
 
 		$pgP = $photo->getPublic($_POST['password']);
 
-		if ($pgP===2)		echo json_encode($photo->get($_POST['albumID']));
-		else if ($pgP===1)	echo 'Warning: Wrong password!';
-		else if ($pgP===0)	echo 'Warning: Photo private!';
-
+		if ($pgP===2)      Response::json($photo->get($_POST['albumID']));
+		else if ($pgP===1) Response::warning('Wrong password!');
+		else if ($pgP===0) Response::warning('Photo private!');
+        
 	}
 
-	# Session functions
+	// Session functions
+	private static function initAction() {
+        
+        $session = new Session();
+		Response::json($session->init(true));
+	
+    }
 
-	private function init() {
+	private static function loginAction() {
+	
+        Validator::required(isset($_POST['user'], $_POST['password']), __METHOD__);
+		$session = new Session();
+		Response::json($session->login($_POST['user'], $_POST['password']));
+	
+    }
 
-		global $dbName;
-
-		$session = new Session($this->database, $dbName, $this->plugins, $this->settings);
-		echo json_encode($session->init($this->database, $dbName, true, $_POST['version']));
-
+	private static function logoutAction() {
+		
+        $session = new Session();
+		Response::json($session->logout());
+        
 	}
 
-	private function login() {
+	// $_GET functions
+	private static function getAlbumArchiveAction() {
 
-		global $dbName;
-
-		Module::dependencies(isset($_POST['user'], $_POST['password']));
-		$session = new Session($this->database, $dbName, $this->plugins, $this->settings);
-		echo json_encode($session->login($_POST['user'], $_POST['password']));
-	}
-
-	private function logout() {
-
-		global $dbName;
-
-		$session = new Session($this->database, $dbName, $this->plugins, $this->settings);
-		echo $session->logout();
-
-	}
-
-	# $_GET functions
-
-	private function getAlbumArchive() {
-
-		Module::dependencies(isset($_GET['albumID'], $_GET['password']));
-		$album = new Album($this->database, $this->plugins, $this->settings, $_GET['albumID']);
+		Validator::required(isset($_GET['albumID'], $_GET['password']), __METHOD__);
+		$album = new Album($_GET['albumID']);
 
 		if ($album->getPublic()&&$album->getDownloadable()) {
-
-			# Album Public
-			if ($album->checkPassword($_GET['password']))	$album->getArchive();
-			else											exit('Warning: Wrong password!');
-
+			// Album Public
+			if ($album->checkPassword($_GET['password'])) $album->getArchive();
+			else                                          Response::warning('Wrong password!');
 		} else {
-
-			# Album Private
-			exit('Warning: Album private or not downloadable!');
-
+			// Album Private
+			Response::warning('Album private or not downloadable!');
 		}
-
+        
 	}
 
-	private function getPhotoArchive() {
-
-		Module::dependencies(isset($_GET['photoID'], $_GET['password']));
-		$photo = new Photo($this->database, $this->plugins, null, $_GET['photoID']);
-
+	private static function getPhotoArchiveAction() {
+    
+		Validator::required(isset($_GET['photoID'], $_GET['password']), __METHOD__);
+		$photo = new Photo($_GET['photoID']);
 		$pgP = $photo->getPublic($_GET['password']);
-
-		# Photo Download
+		// Photo Download
 		if ($pgP===2) {
-
-			# Photo Public
+			// Photo Public
 			$photo->getArchive();
-
 		} else {
-
-			# Photo Private
-			exit('Warning: Photo private or password incorrect!');
-
+			// Photo Private
+			Response::warning('Photo private or password incorrect!');
 		}
-
+        
 	}
 }
-
 ?>

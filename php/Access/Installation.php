@@ -1,44 +1,35 @@
 <?php
+namespace Lychee\Access;
+use Lychee\Modules\Config;
+use Lychee\Modules\Response;
+use Lychee\Modules\Validator;
+final class Installation extends Access {
 
-###
-# @name			Installation Access
-# @copyright	2015 by Tobias Reich
-###
-
-if (!defined('LYCHEE')) exit('Error: Direct access is not allowed!');
-if (!defined('LYCHEE_ACCESS_INSTALLATION')) exit('Error: You are not allowed to access this area!');
-
-class Installation extends Access {
-
-	public function check($fn) {
+	public static function init($fn) {
 
 		switch ($fn) {
-
-			case 'Database::createConfig':	$this->dbCreateConfig(); break;
-
-			# Error
-			default:						$this->init(); break;
-
+			case 'Config::create': self::configCreateAction(); break;
+			default:               self::initAction(); break;
 		}
 
-		return true;
+		self::fnNotFound();
 
 	}
 
-	private function dbCreateConfig() {
+	private static function configCreateAction() {
 
-		Module::dependencies(isset($_POST['dbHost'], $_POST['dbUser'], $_POST['dbPassword'], $_POST['dbName'], $_POST['dbTablePrefix']));
-		echo Database::createConfig($_POST['dbHost'], $_POST['dbUser'], $_POST['dbPassword'], $_POST['dbName'], $_POST['dbTablePrefix']);
+		Validator::required(isset($_POST['dbHost'], $_POST['dbUser'], $_POST['dbPassword'], $_POST['dbName'], $_POST['dbTablePrefix']), __METHOD__);
+		Response::json(Config::create($_POST['dbHost'], $_POST['dbUser'], $_POST['dbPassword'], $_POST['dbName'], $_POST['dbTablePrefix']));
 
 	}
 
-	private function init() {
+	private static function initAction() {
 
 		$return = array(
 			'status' => LYCHEE_STATUS_NOCONFIG
 		);
 
-		echo json_encode($return);
+		Response::json($return);
 
 	}
 

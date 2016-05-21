@@ -1,63 +1,30 @@
 <?php
 
-###
-# @name			Session Module
-# @copyright	2015 by Tobias Reich
-###
+namespace Lychee\Modules;
 
-if (!defined('LYCHEE')) exit('Error: Direct access is not allowed!');
+final class Session {
 
-class Session extends Module {
+	/**
+	 * Reads and returns information about the Lychee installation.
+	 * @return array Returns an array with the login status and configuration.
+	 */
+	public function init($public = true) {
 
-	private $settings = null;
+		// Call plugins
+		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
-	public function __construct($database, $dbname, $plugins, $settings) {
+		// Return settings
+		$return['config'] = Settings::get();
 
-		# Init vars
-		$this->plugins	= $plugins;
-		$this->settings	= $settings;
-		$this->database = $database;
-		$this->dbname	= $dbname;
-
-		return true;
-
-	}
-
-	public function init($database, $dbName, $public, $version) {
-
-		# Check dependencies
-		self::dependencies(isset($this->settings, $public, $version));
-
-		# Call plugins
-		$this->plugins(__METHOD__, 0, func_get_args());
-
-		# Update
-		if (!isset($this->settings['version'])||$this->settings['version']!==$version) {
-			if (!Database::update($database, $dbName, @$this->settings['version'])) {
-				Log::error($database, __METHOD__, __LINE__, 'Updating the database failed');
-				exit('Error: Updating the database failed!');
-			}
-		}
-
-		# Clear expired sessions
-		$query = Database::prepare($this->database, "DELETE FROM ? WHERE expires < UNIX_TIMESTAMP(NOW())", array(LYCHEE_TABLE_SESSIONS));
-		$this->database->query($query);
-
-		# Return settings
-		$return['config'] = $this->settings;
- 
-		# Remove username and password from response
-		unset($return['config']['username']);
-		unset($return['config']['password']);
-
-		# Remove identifier from response
-		unset($return['config']['identifier']);
-
-		# Path to Lychee for the server-import dialog
+		// Path to Lychee for the server-import dialog
 		$return['config']['location'] = LYCHEE;
 
-		# Check if login credentials exist and login if they don't
- 
+		// Remove sensitive from response
+		unset($return['config']['username']);
+		unset($return['config']['password']);
+		unset($return['config']['identifier']);
+
+		// Check if login credentials exist and login if they don't
 		if ($this->noLogin()===true) {
 			$public = false;
 			$return['config']['login'] = false;
@@ -65,136 +32,134 @@ class Session extends Module {
 			$return['config']['login'] = true;
 		}
 
-		# Check login with crypted hash
+		// Clear expired sessions
+		$query = Database::prepare(Database::get(), "DELETE FROM ? WHERE expires < UNIX_TIMESTAMP(NOW())", array(LYCHEE_TABLE_SESSIONS));
+        Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+        
+		// Check login with crypted hash
 		if(isset( $_COOKIE['SESSION']) && $this->sessionExists($_COOKIE['SESSION']) ){
 			$_SESSION['login']		= true;
-			$_SESSION['identifier']	= $this->settings['identifier'];
+			$_SESSION['identifier']	= Settings::get()['identifier'];
 			$public = false;
 		}
  
 		if ($public===false) {
 
-			# Logged in
+			// Logged in
 			$return['status'] = LYCHEE_STATUS_LOGGEDIN;
 
 		} else {
 
-			# Logged out
+			// Logged out
 			$return['status'] = LYCHEE_STATUS_LOGGEDOUT;
 
-			# Unset unused vars
-			unset($return['config']['thumbQuality']);
+			// Unset unused vars
+			unset($return['config']['skipDuplicates']);
 			unset($return['config']['sortingAlbums']);
 			unset($return['config']['sortingPhotos']);
 			unset($return['config']['dropboxKey']);
 			unset($return['config']['login']);
 			unset($return['config']['location']);
 			unset($return['config']['imagick']);
-			unset($return['config']['medium']);
 			unset($return['config']['plugins']);
 			unset($return['role']);
 
 		}
 
-		# Call plugins
-		$this->plugins(__METHOD__, 1, func_get_args());
+		// Call plugins
+		Plugins::get()->activate(__METHOD__, 1, func_get_args());
 
 		return $return;
 
 	}
 
+	/**
+	 * Sets the session values when username and password correct.
+	 * @return boolean Returns true when login was successful.
+	 */
 	public function login($username, $password) {
 
-		# Check dependencies
-		self::dependencies(isset($this->settings, $username, $password));
+		// Call plugins
+		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
-		# Call plugins
-		$this->plugins(__METHOD__, 0, func_get_args());
-
-
-        # Check the login
-        $users = new Users($this->database);
+        // Check the login
+        $users = new Users(Database::get());
 
 		if ($result = $users->checkLogin($username,$password)) {
 				$_SESSION['login']	= true;
-				$_SESSION['identifier']	= $this->settings['identifier'];
+				$_SESSION['identifier']	= Settings::get()['identifier'];
 				$_SESSION['username']	= $username;
 				$_SESSION['userid']	= $result['userid'];
 				$_SESSION['role']	= $result['role'];
 
-				$expire = time() + 60 * $this->settings['sessionLength'];
-				$hash = hash("sha1", $expire.$this->settings['identifier'].$username.$password);
-				$query = Database::prepare($this->database, "INSERT INTO ? (value, expires) VALUES ('?', ?)", array(LYCHEE_TABLE_SESSIONS, $hash, $expire));
-				$result = $this->database->query($query);
+				$expire = time() + 60 * Settings::get()['sessionLength'];
+				$hash = hash("sha1", $expire.Settings::get()['identifier'].$username.$password);
+				$query = Database::prepare(Database::get(), "INSERT INTO ? (value, expires) VALUES ('?', ?)", array(LYCHEE_TABLE_SESSIONS, $hash, $expire));
+				$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 				setcookie("SESSION", $hash, $expire, "/","", false, true);
 
 				return array('role' => $_SESSION['role']);
+
 		}
 
-  	    # No login
+		// No login
 		if ($this->noLogin()===true) return true;
 
-		# Call plugins
-		$this->plugins(__METHOD__, 1, func_get_args());
+		// Call plugins
+		Plugins::get()->activate(__METHOD__, 1, func_get_args());
+
+		// Log failed log in
+		Log::error(Database::get(), __METHOD__, __LINE__, 'User (' . $username . ') has tried to log in from ' . $_SERVER['REMOTE_ADDR']);
 
 		return false;
 
 	}
 
+	/**
+	 * Sets the session values when no there is no username and password in the database.
+	 * @return boolean Returns true when no login was found.
+	 */
 	private function noLogin() {
 
-		# Check dependencies
-		self::dependencies(isset($this->settings));
-
-		# Check if login credentials exist and login if they don't
-        $query = Database::prepare($this->database, "SELECT * FROM ?", array(LYCHEE_TABLE_USERS));
-        $result = $this->database->query($query);
+		// Check if login credentials exist and login if they don't
+        $query = Database::prepare(Database::get(), "SELECT * FROM ?", array(LYCHEE_TABLE_USERS));
+        $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 		
         if($result->num_rows === 0) {
+
 				$_SESSION['login']      = true;
-				$_SESSION['identifier']	= $this->settings['identifier'];
+				$_SESSION['identifier'] = Settings::get()['identifier'];
 				$_SESSION['role']	= 'admin';
 				return true;
 		}
-        /*
-    		if($this->settings['username']==='' && $this->settings['password']==='') {
-    				$_SESSION['login']	= true;
-    				$_SESSION['identifier']	= $this->settings['identifier'];
-    				return true;
-    		}
-         */
 
 		return false;
 
 	}
 
+	/**
+	 * Unsets the session values.
+	 * @return boolean Returns true when logout was successful.
+	 */
 	public function logout() {
 
-		# Call plugins
-		$this->plugins(__METHOD__, 0, func_get_args());
+		// Call plugins
+		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
-		$_SESSION['login']		= null;
-		$_SESSION['identifier']	= null;
-
-		# Delete the session from the database
-		if(isset($_COOKIE['SESSION'])){
-		  $query = Database::prepare($this->database, "DELETE FROM ? WHERE value = '?'", array(LYCHEE_TABLE_SESSIONS, $_COOKIE['SESSION']));
-		  $this->database->query($query);
-		}
-
+		session_unset();
 		session_destroy();
 
-		# Call plugins
-		$this->plugins(__METHOD__, 1, func_get_args());
+		// Call plugins
+		Plugins::get()->activate(__METHOD__, 1, func_get_args());
 
 		return true;
 
 	}
 
 	private function sessionExists($sessionId){
-	      $query = Database::prepare($this->database, "SELECT * FROM ? WHERE value = '?'", array(LYCHEE_TABLE_SESSIONS, $sessionId));
-	      $result = $this->database->query($query);
+	      $query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE value = '?'", array(LYCHEE_TABLE_SESSIONS, $sessionId));
+	      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 	      return $result->num_rows === 1;
 	}
 

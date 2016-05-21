@@ -6,16 +6,15 @@
 lychee = {
 
 	title           : document.title,
-	version         : '3.0.9',
-	version_code    : '030009',
+	version         : '3.1.0',
+	versionCode     : '030100',
 
-	update_path     : '//update.electerious.com/index.json',
+	updatePath      : '//update.electerious.com/index.json',
 	updateURL       : 'https://github.com/electerious/Lychee',
 	website         : 'http://lychee.electerious.com',
 
 	publicMode      : false,
 	viewMode        : false,
-	debugMode       : false,
 
 	checkForUpdates : '1',
 	sortingPhotos   : '',
@@ -25,25 +24,20 @@ lychee = {
 	dropbox         : false,
 	dropboxKey      : '',
 
-	content		: $('.content'),
-	imageview	: $('#imageview'),
+	content         : $('.content'),
+	imageview       : $('#imageview'),
 
-	role		: 'guest'
+	role            : 'guest'
 
 }
 
 lychee.init = function() {
 
-	let params = {
-		version: lychee.version_code
-	}
-
-	api.post('Session::init', params, function(data) {
+	api.post('Session::init', {}, function(data) {
 		// Check status
 		// 0 = No configuration
 		// 1 = Logged out
 		// 2 = Logged in
-
 		if (data.status===2) {
 
 			// Logged in
@@ -53,18 +47,18 @@ lychee.init = function() {
 			lychee.dropboxKey      = data.config.dropboxKey      || ''
 			lychee.location        = data.config.location        || ''
 			lychee.checkForUpdates = data.config.checkForUpdates || '1'
-	      	lychee.role = (localStorage.getItem('lychee_role')!==null) ? localStorage.getItem('lychee_role') : 'guest';
+			lychee.role = (localStorage.getItem('lychee_role')!==null) ? localStorage.getItem('lychee_role') : 'guest';
 
-      		if (lychee.role !== 'admin') {
-        		$('#tools_album #button_trash_album').remove();
-      		}      		
+			if (lychee.role !== 'admin') {
+				$('#tools_album #button_trash_album').remove();
+			}
 
 			// Show dialog when there is no username and password
 			if (data.config.login===false) {
-          		lychee.role = "admin"
-          		settings.createLogin()
-          		return
-      		}
+				lychee.role = "admin"
+				settings.createLogin()
+				return
+			}
 
 		} else if (data.status===1) {
 
@@ -97,8 +91,8 @@ lychee.init = function() {
 
 lychee.login = function(data) {
 
-	let user     = data.username,
-	    password = data.password
+	let user     = data.username
+	let password = data.password
 
 	let params = {
 		user,
@@ -107,13 +101,13 @@ lychee.login = function(data) {
 
 	api.post('Session::login', params, function(data) {
 		if (data!==false) {
-
-			// Use 'try' to catch a thrown error when Safari is in private mode
-			try {
-				localStorage.setItem('lychee_username', user); 
-				localStorage.setItem('lychee_role', data.role); 
-      		} catch (err) {}
-
+            
+            // Use 'try' to catch a thrown error when Safari is in private mode
+            try {
+                localStorage.setItem('lychee_username', user);
+                localStorage.setItem('lychee_role', data.role);
+            } catch (err) {}
+        
 			window.location.reload()
 
 		} else {
@@ -131,8 +125,8 @@ lychee.loginDialog = function() {
 
 	let msg = lychee.html`
 	          <p class='signIn'>
-	              <input class='text' name='username' autocomplete='username' type='text' value='' placeholder='username' autocapitalize='off' autocorrect='off'>
-	              <input class='text' name='password' autocomplete='current-password' type='password' value='' placeholder='password'>
+	              <input class='text' name='username' autocomplete='username' type='text' placeholder='username' autocapitalize='off' autocorrect='off'>
+	              <input class='text' name='password' autocomplete='current-password' type='password' placeholder='password'>
 	          </p>
 	          <p class='version'>Lychee $${ lychee.version }<span> &#8211; <a target='_blank' href='$${ lychee.updateURL }'>Update available!</a><span></p>
 	          `
@@ -151,31 +145,30 @@ lychee.loginDialog = function() {
 		}
 	})
 
-	if (localStorage) {
-		let localUsername = localStorage.getItem('lychee_username')
-		if (localUsername!=null && localUsername.length>0) {
-			$('.basicModal input[name="username"]').val(localUsername)
-			$('.basicModal input[name="password"]').focus()
-		}
-	}
-
+    // Autofill username with username stored locally
+    if (localStorage) {
+        let localUsername = localStorage.getItem('lychee_username')
+        if (localUsername != null && localUsername.length > 0) {
+            $('.basicModal input[name="username"]').val(localUsername)
+            $('.basicModal input[name="password"]').focus()
+        }
+    }
+    
 	if (lychee.checkForUpdates==='1') lychee.getUpdate()
 
 }
 
 lychee.logout = function() {
 
-  localStorage.removeItem('lychee_role');
 	api.post('Session::logout', {}, function() {
 		window.location.reload()
 	})
 
 }
 
-lychee.goto = function(url) {
+lychee.goto = function(url = '') {
 
-	if (url===undefined) url = '#'
-	else                 url = '#' + url
+	url = '#' + url
 
 	history.pushState(null, null, url)
 	lychee.load()
@@ -184,9 +177,9 @@ lychee.goto = function(url) {
 
 lychee.load = function() {
 
-	let albumID = '',
-	    photoID = '',
-	    hash    = document.location.hash.replace('#', '').split('/')
+	let albumID = ''
+	let photoID = ''
+	let hash    = document.location.hash.replace('#', '').split('/')
 
 	$('.no_content').remove()
 	contextMenu.close()
@@ -232,6 +225,7 @@ lychee.load = function() {
 
 		// Show Albums
 		if (visible.photo()) view.photo.hide()
+		lychee.content.show()
 		albums.load()
 
 	}
@@ -240,9 +234,13 @@ lychee.load = function() {
 
 lychee.getUpdate = function() {
 
+	const success = function(data) {
+		if (data.lychee.version>parseInt(lychee.versionCode)) $('.version span').show()
+	}
+
 	$.ajax({
-		url     : lychee.update_path,
-		success : function(data) { if (data.lychee.version>parseInt(lychee.version_code)) $('.version span').show() },
+		url     : lychee.updatePath,
+		success : success
 	})
 
 }
@@ -269,14 +267,14 @@ lychee.setMode = function(mode) {
 		.off('drop')
 
 	Mousetrap
-		.unbind('u')
-		.unbind('s')
-		.unbind('f')
-		.unbind('r')
-		.unbind('d')
-		.unbind('t')
-		.unbind(['command+backspace', 'ctrl+backspace'])
-		.unbind(['command+a', 'ctrl+a'])
+		.unbind([ 'u' ])
+		.unbind([ 's' ])
+		.unbind([ 'f' ])
+		.unbind([ 'r' ])
+		.unbind([ 'd' ])
+		.unbind([ 't' ])
+		.unbind([ 'command+backspace', 'ctrl+backspace' ])
+		.unbind([ 'command+a', 'ctrl+a' ])
 
 	if (mode==='public') {
 
@@ -284,7 +282,8 @@ lychee.setMode = function(mode) {
 
 	} else if (mode==='view') {
 
-		Mousetrap.unbind(['esc', 'command+up'])
+		Mousetrap.unbind([ 'esc', 'command+up' ])
+
 		$('#button_back, a#next, a#previous').remove()
 		$('.no_content').remove()
 
@@ -298,8 +297,8 @@ lychee.setMode = function(mode) {
 lychee.animate = function(obj, animation) {
 
 	let animations = [
-		['fadeIn', 'fadeOut'],
-		['contentZoomIn', 'contentZoomOut']
+		[ 'fadeIn', 'fadeOut' ],
+		[ 'contentZoomIn', 'contentZoomOut' ]
 	]
 
 	if (!obj.jQuery) obj = $(obj)
@@ -319,8 +318,8 @@ lychee.animate = function(obj, animation) {
 
 lychee.retinize = function(path = '') {
 
-	let extention = path.split('.').pop(),
-	    isPhoto   = extention!=='svg'
+	let extention = path.split('.').pop()
+	let isPhoto   = extention!=='svg'
 
 	if (isPhoto===true) {
 
@@ -338,12 +337,12 @@ lychee.retinize = function(path = '') {
 
 lychee.loadDropbox = function(callback) {
 
-	if (!lychee.dropbox && lychee.dropboxKey) {
+	if (lychee.dropbox===false && lychee.dropboxKey!=null && lychee.dropboxKey!=='') {
 
 		loadingBar.show()
 
-		let g = document.createElement('script'),
-		    s = document.getElementsByTagName('script')[0]
+		let g = document.createElement('script')
+		let s = document.getElementsByTagName('script')[0]
 
 		g.src   = 'https://www.dropbox.com/static/api/1/dropins.js'
 		g.id    = 'dropboxjs'
@@ -359,7 +358,7 @@ lychee.loadDropbox = function(callback) {
 		}
 		s.parentNode.insertBefore(g, s)
 
-	} else if (lychee.dropbox&&lychee.dropboxKey) {
+	} else if (lychee.dropbox===true && lychee.dropboxKey!=null && lychee.dropboxKey!=='') {
 
 		callback()
 
@@ -373,8 +372,8 @@ lychee.loadDropbox = function(callback) {
 
 lychee.getEventName = function() {
 
-	let touchendSupport = (/Android|iPhone|iPad|iPod/i).test(navigator.userAgent || navigator.vendor || window.opera) && ('ontouchend' in document.documentElement),
-	    eventName       = (touchendSupport===true ? 'touchend' : 'click')
+	let touchendSupport = (/Android|iPhone|iPad|iPod/i).test(navigator.userAgent || navigator.vendor || window.opera) && ('ontouchend' in document.documentElement)
+	let eventName       = (touchendSupport===true ? 'touchend' : 'click')
 
 	return eventName
 
@@ -401,8 +400,8 @@ lychee.html = function(literalSections, ...substs) {
 
 	// Use raw literal sections: we don't want
 	// backslashes (\n etc.) to be interpreted
-	let raw    = literalSections.raw,
-	    result = ''
+	let raw    = literalSections.raw
+	let result = ''
 	substs.forEach((subst, i) => {
 
 		// Retrieve the literal section preceding
@@ -424,7 +423,7 @@ lychee.html = function(literalSections, ...substs) {
 	// Take care of last literal section
 	// (Never fails, because an empty template string
 	// produces one literal section, an empty string)
-	result += raw[raw.length-1]
+	result += raw[raw.length - 1]
 
 	return result
 

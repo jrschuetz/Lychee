@@ -1,37 +1,17 @@
 <?php
+namespace Lychee\Modules;
 
-###
-# @name			Users Module
-# @copyright	2015 by Viktor Hansson
-###
-
-if (!defined('LYCHEE')) exit('Error: Direct access is not allowed!');
-
-class Users extends Module {
-
-	private $database = null;
-
-	public function __construct($database) {
-
-		# Init vars
-		$this->database = $database;
-
-		return true;
-
-	}
+final class Users {
 
   public function get($username){
       
-      # Check dependenices
-      self::dependencies(isset($this->database));
-
       if($username !== ''){
-        $query = Database::prepare($this->database, "SELECT name, role, id FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
+        $query = Database::prepare(Database::get(), "SELECT name, role, id FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
       }
       else{
-        $query = Database::prepare($this->database, "SELECT name, role, id FROM ? ORDER BY role ", array(LYCHEE_TABLE_USERS));
+        $query = Database::prepare(Database::get(), "SELECT name, role, id FROM ? ORDER BY role ", array(LYCHEE_TABLE_USERS));
       }
-      $result = $this->database->query($query);
+      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
       $data = array();
       while($row = $result->fetch_assoc()){
@@ -40,15 +20,12 @@ class Users extends Module {
       return json_encode($data);
   }
   public function addUser($username, $password, $role){
-      
-      # Check dependencies
-      self::dependencies(isset($this->database));
 
       # Check if user already exists
-      $query = Database::prepare($this->database, "SELECT * FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
-      $result = $this->database->query($query);
+      $query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
+      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
       if($result->num_rows > 0){
-          Log::warning($this->database, __METHOD__, __LINE__, "User: ". $username . " already exists");
+          Log::warning(Database::get(), __METHOD__, __LINE__, "User: ". $username . " already exists");
           exit("User already exists");
       }
       
@@ -58,10 +35,10 @@ class Users extends Module {
       # Insert in database
       # Do not prepare pwhash, since the escaping would
       # destroy it
-      $query = Database::prepare($this->database, "INSERT INTO ? (name, pwhash, role) VALUES ('?', '". $pwhash ."', '?')", array(LYCHEE_TABLE_USERS, $username, $role));
-      $result = $this->database->query($query);
+      $query = Database::prepare(Database::get(), "INSERT INTO ? (name, pwhash, role) VALUES ('?', '". $pwhash ."', '?')", array(LYCHEE_TABLE_USERS, $username, $role));
+      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
       if(!$result){
-          Log::error($this->database, __METHOD__, __LINE__, "Failed to create user: " . $database->error);
+          Log::error(Database::get(), __METHOD__, __LINE__, "Failed to create user: " . $database->error);
           return false;
       }
       return true;
@@ -69,22 +46,19 @@ class Users extends Module {
   
   public function deleteUser($username){
 
-       # Check dependencies
-      self::dependencies(isset($this->database));
-
       # Check if user exists
-      $query = Database::prepare($this->database, "SELECT * FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
-      $result = $this->database->query($query);
+      $query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
+      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
       if($result->num_rows === 0){
-          Log::warning($this->database, __METHOD__, __LINE__, "User: ". $username . " does not exists");
+          Log::warning(Database::get(), __METHOD__, __LINE__, "User: ". $username . " does not exists");
           exit("User does not exists");
       }
 
       # Delete from database
-      $query = Database::prepare($this->database, "DELETE FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
-      $result = $this->database->query($query);
+      $query = Database::prepare(Database::get(), "DELETE FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
+      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
       if(!$result){
-          Log::error($this->database, __METHOD__, __LINE__, "Failed to delete user: " . $database->error);
+          Log::error(Database::get(), __METHOD__, __LINE__, "Failed to delete user: " . $database->error);
           return false;
       }
       return true; 
@@ -92,14 +66,11 @@ class Users extends Module {
 
   public function checkLogin($username, $password){
 
-      # Check dependencies
-      self::dependencies(isset($this->database));
-
       # Check credentials
-      $query = Database::prepare($this->database, "SELECT * FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
-      $result = $this->database->query($query);
+      $query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
+      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
       if($result->num_rows !== 1){
-        Log::error($this->database, __METHOD__, __LINE__, "Multiple users with the same name exists...");
+        Log::error(Database::get(), __METHOD__, __LINE__, "Multiple users with the same name exists...");
         exit("Failed to login");
       }
       $user = $result->fetch_object();
@@ -113,18 +84,15 @@ class Users extends Module {
 
   public function changePassword($username, $oldPassword, $newpassword, $newPwRepeat){
 
-      # Check dependencies
-      self::dependencies(isset($this->database));
-
       if($newpassword !== $newPwRepeat){
          return false;
       }
 
       # Check credentials
-      $query = Database::prepare($this->database, "SELECT * FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
-      $result = $this->database->query($query);
+      $query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
+      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
       if($result->num_rows !== 1){
-        Log::error($this->database, __METHOD__, __LINE__, "Multiple users with the same name exists...");
+        Log::error(Database::get(), __METHOD__, __LINE__, "Multiple users with the same name exists...");
         return false;
       }
       $user = $result->fetch_object();
@@ -135,10 +103,10 @@ class Users extends Module {
           $pwhash = password_hash($newpassword, PASSWORD_BCRYPT);
 
           # Contruct the update query 
-          $query = Database::prepare($this->database, "UPDATE ? SET pwhash = '" . $pwhash . "' WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
-          $result = $this->database->query($query);
+          $query = Database::prepare(Database::get(), "UPDATE ? SET pwhash = '" . $pwhash . "' WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
+          $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
           if(!$query){
-            Log::error($this->database, __METHOD__, __LINE__, "Failed to change password");
+            Log::error(Database::get(), __METHOD__, __LINE__, "Failed to change password");
             return false;
           }
 
@@ -149,16 +117,13 @@ class Users extends Module {
 
   public function getPrivileges($userid){
 
-      # Check deps
-      self::dependencies(isset($this->database));
+      $query = Database::prepare(Database::get(), "SELECT a.id, a.title, p.view, p.upload, p.erase FROM ? a LEFT JOIN ? p ON a.id = p.album_id AND p.user_id = ?", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $userid));
 
-      $query = Database::prepare($this->database, "SELECT a.id, a.title, p.view, p.upload, p.erase FROM ? a LEFT JOIN ? p ON a.id = p.album_id AND p.user_id = ?", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $userid));
+      Log::error(Database::get(), __METHOD__, __LINE__, "test" . $query);
 
-      Log::error($this->database, __METHOD__, __LINE__, "test" . $query);
-
-      $result = $this->database->query($query);
+      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
       if(!$result){
-          Log::error($this->database, __METHOD__, __LINE__, "Failed to get privileges");
+          Log::error(Database::get(), __METHOD__, __LINE__, "Failed to get privileges");
           return false;
       }
 
@@ -173,9 +138,6 @@ class Users extends Module {
 
   public function changePrivileges($userid, $albumid, $privilege , $state){
 
-      # Check deps
-      self::dependencies(isset($this->database));
-
       # This cleans read an write input
       $field = 0;
       switch($privilege){
@@ -185,13 +147,13 @@ class Users extends Module {
       }
       $state = $state ? 1 : 0;
 
-      $query = Database::prepare($this->database, "INSERT INTO ? (`user_id`, `album_id`, `?`) VALUES ('?', '?','?') ON DUPLICATE KEY UPDATE `?`='?';", array(LYCHEE_TABLE_PRIVILEGES, $field, $userid, $albumid, $state, $field, $state));
+      $query = Database::prepare(Database::get(), "INSERT INTO ? (`user_id`, `album_id`, `?`) VALUES ('?', '?','?') ON DUPLICATE KEY UPDATE `?`='?';", array(LYCHEE_TABLE_PRIVILEGES, $field, $userid, $albumid, $state, $field, $state));
 
-      Log::error($this->database, __METHOD__, __LINE__, "test" . $query);
+      Log::error(Database::get(), __METHOD__, __LINE__, "test" . $query);
 
-      $result = $this->database->query($query);
+      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
       if(!$result){
-          Log::error($this->database, __METHOD__, __LINE__, "Failed to insert privilege");
+          Log::error(Database::get(), __METHOD__, __LINE__, "Failed to insert privilege");
           return false;
       }
       return true;

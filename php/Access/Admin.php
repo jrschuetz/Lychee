@@ -1,388 +1,378 @@
 <?php
+namespace Lychee\Access;
+use Lychee\Modules\Album;
+use Lychee\Modules\Albums;
+use Lychee\Modules\Import;
+use Lychee\Modules\Photo;
+use Lychee\Modules\Response;
+use Lychee\Modules\Session;
+use Lychee\Modules\Settings;
+use Lychee\Modules\Validator;
+use Lychee\Modules\Video;
 
-###
-# @name			Admin Access
-# @copyright	2015 by Tobias Reich
-###
+final class Admin extends Access {
 
-if (!defined('LYCHEE')) exit('Error: Direct access is not allowed!');
-if (!defined('LYCHEE_ACCESS_ADMIN')) exit('Error: You are not allowed to access this area!');
-
-class Admin extends Access {
-
-	public function check($fn) {
+	public static function init($fn) {
 
 		switch ($fn) {
 
-			# Album functions
-			case 'Album::getAll':			$this->getAlbums(); break;
-			case 'Album::get':				$this->getAlbum(); break;
-			case 'Album::add':				$this->addAlbum(); break;
-			case 'Album::setTitle':			$this->setAlbumTitle(); break;
-			case 'Album::setDescription':	$this->setAlbumDescription(); break;
-			case 'Album::setPublic':		$this->setAlbumPublic(); break;
-			case 'Album::delete':			$this->deleteAlbum(); break;
-			case 'Album::merge':			$this->mergeAlbums(); break;
+			// Albums functions
+			case 'Albums::get':             self::getAlbumsAction(); break;
+			// Album functions
+			case 'Album::get':				self::getAlbumAction(); break;
+			case 'Album::add':				self::addAlbumAction(); break;
+			case 'Album::setTitle':			self::setAlbumTitleAction(); break;
+			case 'Album::setDescription':	self::setAlbumDescriptionAction(); break;
+			case 'Album::setPublic':		self::setAlbumPublicAction(); break;
+			case 'Album::delete':			self::deleteAlbumAction(); break;
+			case 'Album::merge':			self::mergeAlbumsAction(); break;
 
-			# Photo functions
-			case 'Photo::get':				$this->getPhoto(); break;
-			case 'Photo::setTitle':			$this->setPhotoTitle(); break;
-			case 'Photo::setDescription':	$this->setPhotoDescription(); break;
-			case 'Photo::setStar':			$this->setPhotoStar(); break;
-			case 'Photo::setPublic':		$this->setPhotoPublic(); break;
-			case 'Photo::setAlbum':			$this->setPhotoAlbum(); break;
-			case 'Photo::setTags':			$this->setPhotoTags(); break;
-			case 'Photo::duplicate':		$this->duplicatePhoto(); break;
-			case 'Photo::delete':			$this->deletePhoto(); break;
+			// Photo functions
+			case 'Photo::get':				self::getPhotoAction(); break;
+			case 'Photo::setTitle':			self::setPhotoTitleAction(); break;
+			case 'Photo::setDescription':	self::setPhotoDescriptionAction(); break;
+			case 'Photo::setStar':			self::setPhotoStarAction(); break;
+			case 'Photo::setPublic':		self::setPhotoPublicAction(); break;
+			case 'Photo::setAlbum':			self::setPhotoAlbumAction(); break;
+			case 'Photo::setTags':			self::setPhotoTagsAction(); break;
+			case 'Photo::duplicate':		self::duplicatePhotoAction(); break;
+			case 'Photo::delete':			self::deletePhotoAction(); break;
 
-			# Add functions
-			case 'Photo::add':				$this->uploadImage(); break;
-			case 'Video::add':				$this->uploadVideo(); break;
-			case 'Import::url':				$this->importUrl(); break;
-			case 'Import::server':			$this->importServer(); break;
+			// Add functions
+			case 'Photo::add':				self::uploadImageAction(); break;
+			case 'Video::add':				self::uploadVideoAction(); break;
+			case 'Import::url':				self::importUrlAction(); break;
+			case 'Import::server':			self::importServerAction(); break;
 
-			# Search functions
-			case 'search':					$this->search(); break;
+			// Search functions
+			case 'search':					self::searchAction(); break;
 
-			# Session functions
-			case 'Session::init':			$this->init(); break;
-			case 'Session::login':			$this->login(); break;
-			case 'Session::logout':			$this->logout(); break;
+			// Session functions
+			case 'Session::init':			self::initAction(); break;
+			case 'Session::login':			self::loginAction(); break;
+			case 'Session::logout':			self::logoutAction(); break;
 
-			# Settings functions
-			case 'Settings::setLogin':		$this->setLogin(); break;
-			case 'Settings::setSorting':	$this->setSorting(); break;
-			case 'Settings::setDropboxKey':	$this->setDropboxKey(); break;
+			// Settings functions
+			case 'Settings::setLogin':		self::setLoginAction(); break;
+			case 'Settings::setSorting':	self::setSortingAction(); break;
+			case 'Settings::setDropboxKey':	self::setDropboxKeyAction(); break;
 
-			# $_GET functions
-			case 'Album::getArchive':		$this->getAlbumArchive(); break;
-			case 'Photo::getArchive':		$this->getPhotoArchive(); break;
+			// $_GET functions
+			case 'Album::getArchive':		self::getAlbumArchiveAction(); break;
+			case 'Photo::getArchive':		self::getPhotoArchiveAction(); break;
 
-			# User functions
-			case 'Users::get':              $this->getUsers(); break;
-			case 'Users::addUser':          $this->addUser(); break;
-			case 'Users::deleteUser':       $this->deleteUser(); break;
-      			case 'Users::changePassword':   $this->changePassword(); break;
-			case 'Users::getPrivileges':    $this->getPrivileges(); break;
-			case 'Users::changePrivileges': $this->changePrivileges(); break;
-
-			# Error
-			default:	exit('Error: Admin function not found! Please check the spelling of the called function.'); return false; break;
-
+			// User functions
+			case 'Users::get':              self::getUsersAction(); break;
+			case 'Users::addUser':          self::addUserAction(); break;
+			case 'Users::deleteUser':       self::deleteUserAction(); break;
+      		case 'Users::changePassword':   self::changePasswordAction(); break;
+			case 'Users::getPrivileges':    self::getPrivilegesAction(); break;
+			case 'Users::changePrivileges': self::changePrivilegesAction(); break;
 		}
 
-		return true;
+		self::fnNotFound();
+	}
+
+	// Albums functions
+	private static function getAlbumsAction() {
+
+		$albums = new Albums();
+		Response::json($albums->get(false));
 
 	}
 
-	# Album functions
+    // Album functions
+	private static function getAlbumAction() {
 
-	private function getAlbums() {
-
-		$album = new Album($this->database, $this->plugins, $this->settings, null);
-		echo json_encode($album->getAll(false));
-
-	}
-
-	private function getAlbum() {
-
-		Module::dependencies(isset($_POST['albumID']));
-		$album = new Album($this->database, $this->plugins, $this->settings, $_POST['albumID']);
-		echo json_encode($album->get());
+		Validator::required(isset($_POST['albumID']), __METHOD__);
+		$album = new Album($_POST['albumID']);
+		Response::json($album->get());
 
 	}
 
-	private function addAlbum() {
+	private static function addAlbumAction() {
 
-		Module::dependencies(isset($_POST['title']));
-		$album = new Album($this->database, $this->plugins, $this->settings, null);
-		echo $album->add($_POST['title']);
+		Validator::required(isset($_POST['title']), __METHOD__);
 
-	}
-
-	private function setAlbumTitle() {
-
-		Module::dependencies(isset($_POST['albumIDs'], $_POST['title']));
-		$album = new Album($this->database, $this->plugins, $this->settings, $_POST['albumIDs']);
-		echo $album->setTitle($_POST['title']);
+		$album = new Album(null);
+		Response::json($album->add($_POST['title']), JSON_NUMERIC_CHECK);
 
 	}
 
-	private function setAlbumDescription() {
+	private static function setAlbumTitleAction() {
 
-		Module::dependencies(isset($_POST['albumID'], $_POST['description']));
-		$album = new Album($this->database, $this->plugins, $this->settings, $_POST['albumID']);
-		echo $album->setDescription($_POST['description']);
-
-	}
-
-	private function setAlbumPublic() {
-
-		Module::dependencies(isset($_POST['albumID'], $_POST['password'], $_POST['visible'], $_POST['downloadable']));
-		$album = new Album($this->database, $this->plugins, $this->settings, $_POST['albumID']);
-		echo $album->setPublic($_POST['public'], $_POST['password'], $_POST['visible'], $_POST['downloadable']);
+		Validator::required(isset($_POST['albumIDs'], $_POST['title']), __METHOD__);
+		$album = new Album($_POST['albumIDs']);
+		Response::json($album->setTitle($_POST['title']));
 
 	}
 
-	private function deleteAlbum() {
+	private static function setAlbumDescriptionAction() {
 
-		Module::dependencies(isset($_POST['albumIDs']));
-		$album = new Album($this->database, $this->plugins, $this->settings, $_POST['albumIDs']);
-		echo $album->delete();
-
-	}
-
-	private function mergeAlbums() {
-
-		Module::dependencies(isset($_POST['albumIDs']));
-		$album = new Album($this->database, $this->plugins, $this->settings, $_POST['albumIDs']);
-		echo $album->merge();
+		Validator::required(isset($_POST['albumID'], $_POST['description']), __METHOD__);
+		$album = new Album($_POST['albumID']);
+		Response::json($album->setDescription($_POST['description']));
 
 	}
 
-	# Photo functions
+	private static function setAlbumPublicAction() {
 
-	private function getPhoto() {
-
-		Module::dependencies(isset($_POST['photoID'], $_POST['albumID']));
-		$photo = new Photo($this->database, $this->plugins, null, $_POST['photoID']);
-		echo json_encode($photo->get($_POST['albumID']));
+		Validator::required(isset($_POST['albumID'], $_POST['password'], $_POST['visible'], $_POST['downloadable']), __METHOD__);
+		$album = new Album($_POST['albumID']);
+		Response::json($album->setPublic($_POST['public'], $_POST['password'], $_POST['visible'], $_POST['downloadable']));
 
 	}
 
-	private function setPhotoTitle() {
+	private static function deleteAlbumAction() {
 
-		Module::dependencies(isset($_POST['photoIDs'], $_POST['title']));
-		$photo = new Photo($this->database, $this->plugins, null, $_POST['photoIDs']);
-		echo $photo->setTitle($_POST['title']);
-
-	}
-
-	private function setPhotoDescription() {
-
-		Module::dependencies(isset($_POST['photoID'], $_POST['description']));
-		$photo = new Photo($this->database, $this->plugins, null, $_POST['photoID']);
-		echo $photo->setDescription($_POST['description']);
+		Validator::required(isset($_POST['albumIDs']), __METHOD__);
+		$album = new Album($_POST['albumIDs']);
+		Response::json($album->delete());
 
 	}
 
-	private function setPhotoStar() {
+	private static function mergeAlbumsAction() {
 
-		Module::dependencies(isset($_POST['photoIDs']));
-		$photo = new Photo($this->database, $this->plugins, null, $_POST['photoIDs']);
-		echo $photo->setStar();
-
-	}
-
-	private function setPhotoPublic() {
-
-		Module::dependencies(isset($_POST['photoID']));
-		$photo = new Photo($this->database, $this->plugins, null, $_POST['photoID']);
-		echo $photo->setPublic();
+		Validator::required(isset($_POST['albumIDs']), __METHOD__);
+		$album = new Album($_POST['albumIDs']);
+		Response::json($album->merge());
 
 	}
 
-	private function setPhotoAlbum() {
+	// Photo functions
 
-		Module::dependencies(isset($_POST['photoIDs'], $_POST['albumID']));
-		$photo = new Photo($this->database, $this->plugins, null, $_POST['photoIDs']);
-		echo $photo->setAlbum($_POST['albumID']);
+	private static function getPhotoAction() {
 
-	}
-
-	private function setPhotoTags() {
-
-		Module::dependencies(isset($_POST['photoIDs'], $_POST['tags']));
-		$photo = new Photo($this->database, $this->plugins, null, $_POST['photoIDs']);
-		echo $photo->setTags($_POST['tags']);
+		Validator::required(isset($_POST['photoID'], $_POST['albumID']), __METHOD__);
+		$photo = new Photo($_POST['photoID']);
+		Response::json($photo->get($_POST['albumID']));
 
 	}
 
-	private function duplicatePhoto() {
+	private static function setPhotoTitleAction() {
 
-		Module::dependencies(isset($_POST['photoIDs']));
-		$photo = new Photo($this->database, $this->plugins, null, $_POST['photoIDs']);
-		echo $photo->duplicate();
-
-	}
-
-	private function deletePhoto() {
-
-		Module::dependencies(isset($_POST['photoIDs']));
-		$photo = new Photo($this->database, $this->plugins, null, $_POST['photoIDs']);
-		echo $photo->delete();
+		Validator::required(isset($_POST['photoIDs'], $_POST['title']), __METHOD__);
+		$photo = new Photo($_POST['photoIDs']);
+		Response::json($photo->setTitle($_POST['title']));
 
 	}
 
-	# Add functions
+	private static function setPhotoDescriptionAction() {
 
-	private function uploadImage() {
-
-		Module::dependencies(isset($_FILES, $_POST['albumID'], $_POST['tags']));
-		$photo = new Photo($this->database, $this->plugins, $this->settings, null);
-		echo $photo->add($_FILES, $_POST['albumID'], '', $_POST['tags']);
+		Validator::required(isset($_POST['photoID'], $_POST['description']), __METHOD__);
+		$photo = new Photo($_POST['photoID']);
+		Response::json($photo->setDescription($_POST['description']));
 
 	}
 
-	private function uploadVideo() {
+	private static function setPhotoStarAction() {
 
-		Module::dependencies(isset($_FILES, $_POST['albumID'], $_POST['tags']));
-		$video = new Video($this->database, $this->plugins, $this->settings, null);
-		echo $video->add($_FILES, $_POST['albumID'], '', $_POST['tags']);
-
-	}
-
-	private function importUrl() {
-
-		Module::dependencies(isset($_POST['url'], $_POST['albumID']));
-		$import = new Import($this->database, $this->plugins, $this->settings);
-		echo $import->url($_POST['url'], $_POST['albumID']);
+		Validator::required(isset($_POST['photoIDs']), __METHOD__);
+		$photo = new Photo($_POST['photoIDs']);
+		Response::json($photo->setStar());
 
 	}
 
-	private function importServer() {
+	private static function setPhotoPublicAction() {
 
-		Module::dependencies(isset($_POST['albumID'], $_POST['path']));
-		$import = new Import($this->database, $this->plugins, $this->settings);
-		echo $import->server($_POST['path'], $_POST['albumID']);
-
-	}
-
-	# Search function
-
-	private function search() {
-
-		Module::dependencies(isset($_POST['term']));
-		echo json_encode(search($this->database, $this->settings, $_POST['term']));
+		Validator::required(isset($_POST['photoID']), __METHOD__);
+		$photo = new Photo($_POST['photoID']);
+		Response::json($photo->setPublic());
 
 	}
 
-	# Session functions
+	private static function setPhotoAlbumAction() {
 
-	private function init() {
-
-		global $dbName;
-
-		Module::dependencies(isset($_POST['version']));
-		$session = new Session($this->database, $dbName, $this->plugins, $this->settings);
-		echo json_encode($session->init($this->database, $dbName, false, $_POST['version']));
+		Validator::required(isset($_POST['photoIDs'], $_POST['albumID']), __METHOD__);
+		$photo = new Photo($_POST['photoIDs']);
+		Response::json($photo->setAlbum($_POST['albumID']));
 
 	}
 
-	private function login() {
+	private static function setPhotoTagsAction() {
 
-		global $dbName;
-
-		Module::dependencies(isset($_POST['user'], $_POST['password']));
-		$session = new Session($this->database, $dbName, $this->plugins, $this->settings);
-		echo $session->login($_POST['user'], $_POST['password']);
+		Validator::required(isset($_POST['photoIDs'], $_POST['tags']), __METHOD__);
+		$photo = new Photo($_POST['photoIDs']);
+		Response::json($photo->setTags($_POST['tags']));
 
 	}
 
-	private function logout() {
+	private static function duplicatePhotoAction() {
 
-		global $dbName;
-
-		$session = new Session($this->database, $dbName, $this->plugins, $this->settings);
-		echo $session->logout();
-
-	}
-
-	# Settings functions
-
-	private function setLogin() {
-
-		Module::dependencies(isset($_POST['username'], $_POST['password']));
-    $this->users = new Users($this->database);
-    echo $this->users->addUser($_POST['username'], $_POST['password'], 'admin');
+		Validator::required(isset($_POST['photoIDs']), __METHOD__);
+		$photo = new Photo($_POST['photoIDs']);
+		Response::json($photo->duplicate());
 
 	}
 
-	private function setSorting() {
+	private static function deletePhotoAction() {
 
-		Module::dependencies(isset($_POST['typeAlbums'], $_POST['orderAlbums'], $_POST['typePhotos'], $_POST['orderPhotos']));
-		$this->settings = new Settings($this->database);
-
-		$sA = $this->settings->setSortingAlbums($_POST['typeAlbums'], $_POST['orderAlbums']);
-		$sP = $this->settings->setSortingPhotos($_POST['typePhotos'], $_POST['orderPhotos']);
-
-		if ($sA===true&&$sP===true)	echo true;
-		else						echo false;
+		Validator::required(isset($_POST['photoIDs']), __METHOD__);
+		$photo = new Photo($_POST['photoIDs']);
+		Response::json($photo->delete());
 
 	}
 
-	private function setDropboxKey() {
+	// Add functions
+	private static function uploadImageAction() {
+		
+        Validator::required(isset($_FILES, $_POST['albumID']), __METHOD__);
+		$photo = new Photo(null);
+		Response::json($photo->add($_FILES, $_POST['albumID']), JSON_NUMERIC_CHECK);
+        
+	}
 
-		Module::dependencies(isset($_POST['key']));
-		$this->settings = new Settings($this->database);
-		echo $this->settings->setDropboxKey($_POST['key']);
+	private static function uploadVideoAction() {
+		
+        Validator::required(isset($_FILES, $_POST['albumID']), __METHOD__);
+		$video = new Video(null);
+		Response::json($video->add($_FILES, $_POST['albumID']), JSON_NUMERIC_CHECK);
+        
+	}
+
+	private static function importUrlAction() {
+		Validator::required(isset($_POST['url'], $_POST['albumID']), __METHOD__);
+		$import = new Import();
+		Response::json($import->url($_POST['url'], $_POST['albumID']));
 
 	}
 
-	# Get functions
+	private static function importServerAction() {
 
-	private function getAlbumArchive() {
+		Validator::required(isset($_POST['albumID'], $_POST['path']), __METHOD__);
+		$import = new Import();
+		Response::json($import->server($_POST['path'], $_POST['albumID']));
 
-		Module::dependencies(isset($_GET['albumID']));
-		$album = new Album($this->database, $this->plugins, $this->settings, $_GET['albumID']);
+	}
+
+	// Search functions
+	private static function searchAction() {
+
+		Validator::required(isset($_POST['term']), __METHOD__);
+		Response::json(search($_POST['term']));
+
+	}
+
+	// Session functions
+
+	private static function initAction() {
+
+    	$session = new Session();
+		Response::json($session->init(false));
+	}
+
+	private static function loginAction() {
+    
+		Validator::required(isset($_POST['user'], $_POST['password']), __METHOD__);
+
+		$session = new Session();
+		Response::json($session->login($_POST['user'], $_POST['password']));
+
+	}
+
+	private static function logoutAction() {
+    
+		$session = new Session();
+		Response::json($session->logout());
+
+	}
+
+	// Settings functions
+
+	private static function setLoginAction() {
+
+		Validator::required(isset($_POST['username'], $_POST['password']), __METHOD__);
+
+
+
+		if (isset($_POST['oldPassword'])===false) $_POST['oldPassword'] = '';
+		Response::json(Settings::setLogin($_POST['oldPassword'], $_POST['username'], $_POST['password']));
+	}
+
+	private static function setSortingAction() {
+
+		Validator::required(isset($_POST['typeAlbums'], $_POST['orderAlbums'], $_POST['typePhotos'], $_POST['orderPhotos']), __METHOD__);
+
+
+		$sA = Settings::setSortingAlbums($_POST['typeAlbums'], $_POST['orderAlbums']);
+		$sP = Settings::setSortingPhotos($_POST['typePhotos'], $_POST['orderPhotos']);
+
+		if ($sA===true&&$sP===true) Response::json(true);
+		else                        Response::json(false);
+
+	}
+
+	private static function setDropboxKeyAction() {
+
+		Validator::required(isset($_POST['key']), __METHOD__);
+
+		Response::json(Settings::setDropboxKey($_POST['key']));
+
+	}
+
+	// Get functions
+
+	private static function getAlbumArchiveAction() {
+
+		Validator::required(isset($_GET['albumID']), __METHOD__);
+		$album = new Album($_GET['albumID']);
 		$album->getArchive();
 
 	}
 
-	private function getPhotoArchive() {
+	private static function getPhotoArchiveAction() {
 
-		Module::dependencies(isset($_GET['photoID']));
-		$photo = new Photo($this->database, $this->plugins, null, $_GET['photoID']);
+		Validator::required(isset($_GET['photoID']), __METHOD__);
+		$photo = new Photo($_GET['photoID']);
 		$photo->getArchive();
 
 	}
 
-    private function addUser(){
+    private static function addUserAction(){
     
-        Module::dependencies(isset($_POST['username'], $_POST['password'], $_POST['role']));
-        $users = new Users($this->database);
-        echo $users->addUser($_POST['username'], $_POST['password'], $_POST['role']);
-    
-    }
-    
-    private function deleteUser(){
-    
-        Module::dependencies(isset($_POST['username'] ));
-        $users = new Users($this->database);
-        echo $users->deleteUser($_POST['username']);
+        Validator::required(isset($_POST['username'], $_POST['password'], $_POST['role']), __METHOD__);
+        $users = new Users();
+        Response::json($users->addUser($_POST['username'], $_POST['password'], $_POST['role']));
     
     }
     
-    private function changePassword(){
+    private static function deleteUserAction(){
     
-        Module::dependencies(isset($_SESSION['username'], $_POST['oldPassword'], $_POST['newPassword'], $_POST['newPwRepeat'] ));
-        $users = new Users($this->database);
-        echo $users->changePassword( $_SESSION['username'], $_POST['oldPassword'], $_POST['newPassword'],$_POST['newPwRepeat']);
+        Validator::required(isset($_POST['username']), __METHOD__);
+        $users = new Users();
+        Response::json($users->deleteUser($_POST['username']));
     
     }
     
-    private function getUsers(){
+    private static function changePasswordAction(){
+    
+        Validator::required(isset($_SESSION['username'], $_POST['oldPassword'], $_POST['newPassword'], $_POST['newPwRepeat']), __METHOD__);
+        $users = new Users();
+        Response::json($users->changePassword( $_SESSION['username'], $_POST['oldPassword'], $_POST['newPassword'],$_POST['newPwRepeat']));
+    
+    }
+    
+    private static function getUsersAction(){
     
         $username = (isset($_POST['username'])) ? $_POST['username'] : '';
-        $users = new Users($this->database);
-        echo $users->get($username);
+        $users = new Users();
+        Response::json($users->get($username));
     
     }
     
-    private function getPrivileges(){
+    private static function getPrivilegesAction(){
     
-        Module::dependencies(isset($_POST['userid']));
-        $users = new Users($this->database);
-        echo json_encode($users->getPrivileges($_POST['userid']));
+        Validator::required(isset($_POST['userid']), __METHOD__);
+        $users = new Users();
+        Response::json(json_encode($users->getPrivileges($_POST['userid'])));
     
     }
     
+    private static function changePrivilegesAction(){
     
-    private function changePrivileges(){
-    
-        Module::dependencies(isset($_POST['userid'], $_POST['albumid'], $_POST['privilege'] , $_POST['state']));
-        $users = new Users($this->database);
-        echo $users->changePrivileges($_POST['userid'], $_POST['albumid'], $_POST['privilege'] , $_POST['state']);
+        Validator::required(isset($_POST['userid'], $_POST['albumid'], $_POST['privilege'] , $_POST['state']), __METHOD__);
+        $users = new Users();
+        Response::json($users->changePrivileges($_POST['userid'], $_POST['albumid'], $_POST['privilege'] , $_POST['state']));
     
     }
 

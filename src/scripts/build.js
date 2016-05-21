@@ -116,15 +116,16 @@ build.photo = function(data) {
 build.imageview = function(data, visibleControls) {
 
 	let html      = ''
+	let hasMedium = data.medium!==''
 
 	if (data.media_type==='video') {
-        html += `<video id='image' class='video' controls src='${data.url}'>This video format is not supported by your browser yet. <a href='${data.url}'>Download video</a></video>`
+		html += `<video id='image' class='video' controls src='${data.url}'>This video format is not supported by your browser yet. <a href='${data.url}'>Download video</a></video>`
 	} else {
 		hasMedium = data.medium!==''
 		if (hasMedium===false) {
-			html += lychee.html`<div id='image' class='$${ visibleControls===true ? '' : 'full' }'><div><img src='$${ data.url }' draggable='false'></div></div>`
+		html += lychee.html`<img id='image' class='$${ visibleControls===true ? '' : 'full' }' src='$${ data.url }' draggable='false'>`
 		} else {
-			html += lychee.html`<div id='image' class='$${ visibleControls===true ? '' : 'full' }'><div><img src='$${ data.url }' srcset='$${ data.medium } 1920w, $${ data.url } $${ data.width }w' draggable='false'></div></div>`
+		html += lychee.html`<img id='image' class='$${ visibleControls===true ? '' : 'full' }' src='$${ data.url }' srcset='$${ data.medium } 1920w, $${ data.url } $${ data.width }w' draggable='false'>`
 		}
 	}
 	html += `
@@ -181,17 +182,12 @@ build.uploadModal = function(title, files) {
 
 		let file = files[i]
 
-		if (file.name.length>40) file.name = file.name.substr(0, 17) + '...' + file.name.substr(file.name.length-20, 20)
+		if (file.name.length>40) file.name = file.name.substr(0, 17) + '...' + file.name.substr(file.name.length - 20, 20)
 
 		html += lychee.html`
 		        <div class='row'>
 		            <a class='name'>$${ file.name }</a>
-		        `
-
-		if (file.supported===true) html += `<a class='status'></a>`
-		else                       html += `<a class='status error'>Not supported</a>`
-
-		html += `
+		            <a class='status'></a>
 		            <p class='notice'></p>
 		        </div>
 		        `

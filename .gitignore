@@ -8,7 +8,6 @@ uploads/import/*
 uploads/medium/*
 uploads/thumb/*
 uploads/video/*
-plugins/*
 
 !uploads/big/index.html
 !uploads/import/index.html
@@ -16,7 +15,7 @@ plugins/*
 !uploads/thumb/index.html
 !uploads/video/index.html
 
-!plugins/check/
-!plugins/displaylog/
+plugins/*
 
-*.swp
+!plugins/Diagnostics/
+!plugins/Log/

@@ -7,61 +7,61 @@ contextMenu = {}
 
 contextMenu.add = function(e) {
 
-  var items;
+	let items;
 
-  if( lychee.role === 'admin'){
-	items = [
-		{ title: build.iconic('image') + 'Upload Photo', fn: () => $('#upload_files').click() },
-		{ },
-		{ title: build.iconic('link-intact') + 'Import from Link', fn: upload.start.url },
-		{ title: build.iconic('dropbox', 'ionicons') + 'Import from Dropbox', fn: upload.start.dropbox },
-		{ title: build.iconic('terminal') + 'Import from Server', fn: upload.start.server },
-		{ },
-		{ title: build.iconic('folder') + 'New Album', fn: album.add }
-      ]
-  } else if ( lychee.role === 'user') {
-     items = [
-        { title: build.iconic('image') + 'Upload Photo', fn: () => $('#upload_files').click() },
-        { },
-        { title: build.iconic('link-intact') + 'Import from Link', fn: upload.start.url },
-      ]
-  }
+	if( lychee.role === 'admin'){
+		items = [
+			{ title: build.iconic('image') + 'Upload Photo', fn: () => $('#upload_files').click() },
+			{ },
+			{ title: build.iconic('link-intact') + 'Import from Link', fn: upload.start.url },
+			{ title: build.iconic('dropbox', 'ionicons') + 'Import from Dropbox', fn: upload.start.dropbox },
+			{ title: build.iconic('terminal') + 'Import from Server', fn: upload.start.server },
+			{ },
+			{ title: build.iconic('folder') + 'New Album', fn: album.add }
+		]
+	} else if ( lychee.role === 'user') {
+		items = [
+			{ title: build.iconic('image') + 'Upload Photo', fn: () => $('#upload_files').click() },
+			{ },
+			{ title: build.iconic('link-intact') + 'Import from Link', fn: upload.start.url },
+		]
+	}
 
-  basicContext.show(items, e.originalEvent)
+	basicContext.show(items, e.originalEvent)
 
-  upload.notify()
+	upload.notify()
 
 }
 
 contextMenu.settings = function(e) {
 
-  var items;
+	let items;
 
-  if( lychee.role === 'admin' ) {
-	items = [
-        	{ title: build.iconic('person') + 'Change Password', fn: users.changePassword },
-	        { title: build.iconic('person') + 'Manage Users', fn: users.manageUsers },
-		{ title: build.iconic('sort-ascending') + 'Change Sorting', fn: settings.setSorting },
-		{ title: build.iconic('dropbox', 'ionicons') + 'Set Dropbox', fn: settings.setDropboxKey },
-		{ },
-		{ title: build.iconic('info') + 'About Lychee', fn: () => window.open(lychee.website) },
-		{ title: build.iconic('wrench') + 'Diagnostics', fn: () => window.open('plugins/check/') },
-		{ title: build.iconic('align-left') + 'Show Log', fn: () => window.open('plugins/displaylog/') },
-		{ },
-		{ title: build.iconic('account-logout') + 'Sign Out', fn: lychee.logout }
-	]
-  }  else if ( lychee.role === 'user' ) {
-      	items = [
-        	{ title: build.iconic('person') + 'Change Password', fn: users.changePassword },
-	        { title: build.iconic('sort-ascending') + 'Change Sorting', fn: settings.setSorting },
-        	{ },
-	        { title: build.iconic('info') + 'About Lychee', fn: function() { window.open(lychee.website) } },
-        	{ },
-	        { title: build.iconic('account-logout') + 'Sign Out', fn: lychee.logout }
-      ]
-  }
+	if( lychee.role === 'admin' ) {
+		items = [
+			{ title: build.iconic('person') + 'Change Password', fn: users.changePassword },
+			{ title: build.iconic('person') + 'Manage Users', fn: users.manageUsers },
+			{ title: build.iconic('sort-ascending') + 'Change Sorting', fn: settings.setSorting },
+			{ title: build.iconic('dropbox', 'ionicons') + 'Set Dropbox', fn: settings.setDropboxKey },
+			{ },
+			{ title: build.iconic('info') + 'About Lychee', fn: () => window.open(lychee.website) },
+			{ title: build.iconic('wrench') + 'Diagnostics', fn: () => window.open('plugins/Diagnostics/') },
+			{ title: build.iconic('align-left') + 'Show Log', fn: () => window.open('plugins/Log/') },
+			{ },
+			{ title: build.iconic('account-logout') + 'Sign Out', fn: lychee.logout }
+		]
+	} else if ( lychee.role === 'user' ) {
+		items = [
+			{ title: build.iconic('person') + 'Change Password', fn: users.changePassword },
+			{ title: build.iconic('sort-ascending') + 'Change Sorting', fn: settings.setSorting },
+			{ },
+			{ title: build.iconic('info') + 'About Lychee', fn: function() { window.open(lychee.website) } },
+			{ },
+			{ title: build.iconic('account-logout') + 'Sign Out', fn: lychee.logout }
+		]
+	}
 
-  basicContext.show(items, e.originalEvent)
+	basicContext.show(items, e.originalEvent)
 
 }
 
@@ -70,9 +70,9 @@ contextMenu.album = function(albumID, e) {
 	// Notice for 'Merge':
 	// fn must call basicContext.close() first,
 	// in order to keep the selection
-  
-  // Only admin can do stuff to the albums
-  if(lychee.role !== 'admin') return false;
+
+	// Only admin can do stuff to the albums
+	if(lychee.role !== 'admin') return false;
 
 	if (albumID==='0' || albumID==='f' || albumID==='s' || albumID==='r') return false
 
@@ -80,9 +80,9 @@ contextMenu.album = function(albumID, e) {
 	let showMerge = (albums.json && albums.json.albums && Object.keys(albums.json.albums).length>1)
 
 	let items = [
-		{ title: build.iconic('pencil') + 'Rename', fn: () => album.setTitle([albumID]) },
+		{ title: build.iconic('pencil') + 'Rename', fn: () => album.setTitle([ albumID ]) },
 		{ title: build.iconic('collapse-left') + 'Merge', visible: showMerge, fn: () => { basicContext.close(); contextMenu.mergeAlbum(albumID, e) } },
-		{ title: build.iconic('trash') + 'Delete', fn: () => album.delete([albumID]) }
+		{ title: build.iconic('trash') + 'Delete', fn: () => album.delete([ albumID ]) }
 	]
 
 	$('.album[data-id="' + albumID + '"]').addClass('active')
@@ -93,8 +93,8 @@ contextMenu.album = function(albumID, e) {
 
 contextMenu.albumMulti = function(albumIDs, e) {
 
-  // Only admin can do stuff to the albums
-  if(lychee.role !== 'admin') return false;
+	// Only admin can do stuff to the albums
+	if(lychee.role !== 'admin') return false;
 
 	multiselect.stopResize()
 
@@ -120,7 +120,7 @@ contextMenu.albumMulti = function(albumIDs, e) {
 
 contextMenu.albumTitle = function(albumID, e) {
 
-	api.post('Album::getAll', {}, function(data) {
+	api.post('Albums::get', {}, function(data) {
 
 		let items = []
 
@@ -130,22 +130,25 @@ contextMenu.albumTitle = function(albumID, e) {
 			$.each(data.albums, function() {
 
 				if (!this.thumbs[0]) this.thumbs[0] = 'src/images/no_cover.svg'
+				if (this.title==='') this.title = 'Untitled'
 
-				let title = lychee.html`<img class='cover' width='16' height='16' src='$${ this.thumbs[0] }'><div class='title'>$${ this.title }</div>`
+				let html = lychee.html`<img class='cover' width='16' height='16' src='$${ this.thumbs[0] }'><div class='title'>$${ this.title }</div>`
 
-				if (this.id!=albumID) items.push({ title, fn: () => lychee.goto(this.id) })
+				if (this.id!=albumID) items.push({
+					title: html,
+					fn: () => lychee.goto(this.id)
+				})
 
 			})
 
-      if( lychee.role === 'admin'){
-			items.unshift({ })
+			if( lychee.role === 'admin'){
+				items.unshift({ })
+			}
 		}
 
+		if( lychee.role === 'admin'){
+			items.unshift({ title: build.iconic('pencil') + 'Rename', fn: () => album.setTitle([ albumID ]) })
 		}
-
-    if( lychee.role === 'admin'){
-		items.unshift({ title: build.iconic('pencil') + 'Rename', fn: () => album.setTitle([albumID]) })
-    }
 
 		basicContext.show(items, e.originalEvent, contextMenu.close)
 
@@ -160,7 +163,7 @@ contextMenu.mergeAlbum = function(albumID, e) {
 
 	var items = [];
 
-	api.post('Album::getAll', {}, function(data) {
+	api.post('Albums::get',  {}, function(data) {
 
 		let items = []
 
@@ -169,10 +172,14 @@ contextMenu.mergeAlbum = function(albumID, e) {
 			$.each(data.albums, function() {
 
 				if (!this.thumbs[0]) this.thumbs[0] = 'src/images/no_cover.svg'
+				if (this.title==='') this.title = 'Untitled'
 
-				let title = lychee.html`<img class='cover' width='16' height='16' src='$${ this.thumbs[0] }'><div class='title'>$${ this.title }</div>`
+				let html = lychee.html`<img class='cover' width='16' height='16' src='$${ this.thumbs[0] }'><div class='title'>$${ this.title }</div>`
 
-				if (this.id!=albumID) items.push({ title, fn: () => album.merge([albumID, this.id]) })
+				if (this.id!=albumID) items.push({
+					title: html,
+					fn: () => album.merge([ albumID, this.id ])
+				})
 
 			})
 
@@ -192,28 +199,28 @@ contextMenu.photo = function(photoID, e) {
 	// fn must call basicContext.close() first,
 	// in order to keep the selection
 
-  if (lychee.role == 'admin'){
-     let items = [
-		{ title: build.iconic('star') + 'Star', fn: () => photo.setStar([photoID]) },
-		{ title: build.iconic('tag') + 'Tags', fn: () => photo.editTags([photoID]) },
-        { },
-		{ title: build.iconic('pencil') + 'Rename', fn: () => photo.setTitle([photoID]) },
-		{ title: build.iconic('layers') + 'Duplicate', fn: () => photo.duplicate([photoID]) },
-		{ title: build.iconic('folder') + 'Move', fn: () => { basicContext.close(); contextMenu.move([photoID], e) } },
-		{ title: build.iconic('trash') + 'Delete', fn: () => photo.delete([photoID]) }
-      ]
-  } else if (lychee.role == 'user'){
-      let items = [
-        { title: build.iconic('star') + 'Star', fn: () => photo.setStar([photoID]) },
-        { title: build.iconic('tag') + 'Tags', fn: () => photo.editTags([photoID]) },
-        { },
-        { title: build.iconic('pencil') + 'Rename', fn: () => photo.setTitle([photoID]) },
-        { title: build.iconic('layers') + 'Duplicate', fn: () => photo.duplicate([photoID]) },
-      ]
-      if(album.json.erase == 1){
-          items.push({ title: build.iconic('trash') + 'Delete', fn: function() { photo.delete([photoID]) } });
-      }
-  }
+	if (lychee.role == 'admin'){
+		let items = [
+			{ title: build.iconic('star') + 'Star', fn: () => photo.setStar([ photoID ]) },
+			{ title: build.iconic('tag') + 'Tags', fn: () => photo.editTags([ photoID ]) },
+			{ },
+			{ title: build.iconic('pencil') + 'Rename', fn: () => photo.setTitle([ photoID ]) },
+			{ title: build.iconic('layers') + 'Duplicate', fn: () => photo.duplicate([ photoID ]) },
+			{ title: build.iconic('folder') + 'Move', fn: () => { basicContext.close(); contextMenu.move([ photoID ], e) } },
+			{ title: build.iconic('trash') + 'Delete', fn: () => photo.delete([ photoID ]) }
+		]
+	} else if (lychee.role == 'user'){
+		let items = [
+			{ title: build.iconic('star') + 'Star', fn: () => photo.setStar([ photoID ]) },
+			{ title: build.iconic('tag') + 'Tags', fn: () => photo.editTags([ photoID]) },
+			{ },
+			{ title: build.iconic('pencil') + 'Rename', fn: () => photo.setTitle([ photoID ]) },
+			{ title: build.iconic('layers') + 'Duplicate', fn: () => photo.duplicate([ photoID ]) },
+		]
+		if(album.json.erase == 1){
+			items.push({ title: build.iconic('trash') + 'Delete', fn: function() { photo.delete([ photoID ]) } });
+		}
+	}
 
 	$('.photo[data-id="' + photoID + '"]').addClass('active')
 
@@ -246,7 +253,7 @@ contextMenu.photoMulti = function(photoIDs, e) {
 contextMenu.photoTitle = function(albumID, photoID, e) {
 
 	let items = [
-		{ title: build.iconic('pencil') + 'Rename', fn: () => photo.setTitle([photoID]) }
+		{ title: build.iconic('pencil') + 'Rename', fn: () => photo.setTitle([ photoID ]) }
 	]
 
 	let data = album.json
@@ -258,9 +265,14 @@ contextMenu.photoTitle = function(albumID, photoID, e) {
 		// Generate list of albums
 		$.each(data.content, function(index) {
 
-			let title = lychee.html`<img class='cover' width='16' height='16' src='$${ this.thumbUrl }'><div class='title'>$${ this.title }</div>`
+			if (this.title==='') this.title = 'Untitled'
 
-			if (this.id!=photoID) items.push({ title, fn: () => lychee.goto(albumID + '/' + this.id) })
+			let html = lychee.html`<img class='cover' width='16' height='16' src='$${ this.thumbUrl }'><div class='title'>$${ this.title }</div>`
+
+			if (this.id!=photoID) items.push({
+				title: html,
+				fn: () => lychee.goto(albumID + '/' + this.id)
+			})
 
 		})
 
@@ -288,9 +300,9 @@ contextMenu.photoMore = function(photoID, e) {
 
 contextMenu.move = function(photoIDs, e) {
 
-	var items = []
+	let items = []
 
-	api.post('Album::getAll', {}, function(data) {
+	api.post('Albums::get', {}, function(data) {
 
 		if (data.num===0) {
 
@@ -305,10 +317,14 @@ contextMenu.move = function(photoIDs, e) {
 			$.each(data.albums, function() {
 
 				if (!this.thumbs[0]) this.thumbs[0] = 'src/images/no_cover.svg'
+				if (this.title==='') this.title = 'Untitled'
 
-				let title = lychee.html`<img class='cover' width='16' height='16' src='$${ this.thumbs[0] }'><div class='title'>$${ this.title }</div>`
+				let html = lychee.html`<img class='cover' width='16' height='16' src='$${ this.thumbs[0] }'><div class='title'>$${ this.title }</div>`
 
-				if (this.id!=album.getID()) items.push({ title, fn: () => photo.setAlbum(photoIDs, this.id) })
+				if (this.id!=album.getID()) items.push({
+					title: html,
+					fn: () => photo.setAlbum(photoIDs, this.id)
+				})
 
 			})
 
@@ -330,8 +346,8 @@ contextMenu.move = function(photoIDs, e) {
 
 contextMenu.sharePhoto = function(photoID, e) {
 
-	let link      = photo.getViewLink(photoID),
-		iconClass = 'ionicons'
+	let link      = photo.getViewLink(photoID)
+	let iconClass = 'ionicons'
 
 	let items = [
 		{ title: `<input readonly id="link" value="${ link }">`, fn: () => {}, class: 'basicContext__item--noHover' },

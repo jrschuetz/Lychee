@@ -1,251 +1,224 @@
 <?php
 
-###
-# @name			Settings Module
-# @copyright	2015 by Tobias Reich
-###
+namespace Lychee\Modules;
+use Lychee\Modules\Users;
+use Lychee\Modules\Response;
 
-if (!defined('LYCHEE')) exit('Error: Direct access is not allowed!');
+final class Settings {
 
-class Settings extends Module {
+	private static $cache = null;
+    
+	/**
+	 * @return array Returns the settings of Lychee.
+	 */
+	public static function get() {
 
-	private $database = null;
+		if (self::$cache) return self::$cache;
 
-	public function __construct($database) {
+		// Execute query
+		$query    = Database::prepare(Database::get(), "SELECT * FROM ?", array(LYCHEE_TABLE_SETTINGS));
+		$settings = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
-		# Init vars
-		$this->database = $database;
-
-		return true;
-
-	}
-
-	public function get() {
-
-		# Check dependencies
-		self::dependencies(isset($this->database));
-
-		# Execute query
-		$query		= Database::prepare($this->database, "SELECT * FROM ?", array(LYCHEE_TABLE_SETTINGS));
-		$settings	= $this->database->query($query);
-
-		# Add each to return
+		// Add each to return
 		while ($setting = $settings->fetch_object()) $return[$setting->key] = $setting->value;
 
-		# Fallback for versions below v2.5
-		if (!isset($return['plugins'])) $return['plugins'] = '';
+		// Convert plugins to array
+		$return['plugins'] = explode(';', $return['plugins']);
+
+		self::$cache = $return;
 
 		return $return;
 
 	}
 
-	public function setLogin($oldPassword = '', $username, $password) {
+	/**
+	 * @return boolean Returns true when successful.
+	 */
+	private static function set($key, $value, $row = false) {
 
-		# Check dependencies
-		self::dependencies(isset($this->database));
+		if ($row===false) {
 
-		# Load settings
-		$settings = $this->get();
+			$query = Database::prepare(Database::get(), "UPDATE ? SET value = '?' WHERE `key` = '?'", array(LYCHEE_TABLE_SETTINGS, $value, $key));
 
-		if ($oldPassword===$settings['password']||$settings['password']===crypt($oldPassword, $settings['password'])) {
+		} elseif ($row===true) {
 
-			# Save username
-			if ($this->setUsername($username)!==true) exit('Error: Updating username failed!');
+			// Do not prepare $value because it has already been escaped or is a true statement
+			$query = Database::prepare(Database::get(), "UPDATE ? SET value = '$value' WHERE `key` = '?'", array(LYCHEE_TABLE_SETTINGS, $key));
 
-			# Save password
-			if ($this->setPassword($password)!==true) exit('Error: Updating password failed!');
+		} else {
+
+			return false;
+
+		}
+
+		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
+		if ($result===false) return false;
+		return true;
+
+	}
+
+	/**
+	 * Sets the username and password when current password is correct.
+	 * Exits on error.
+	 * @return true Returns true when successful.
+	 */
+	public static function setLogin($oldPassword = '', $username, $password) {
+
+		if ($oldPassword===self::get()['password']||self::get()['password']===crypt($oldPassword, self::get()['password'])) {
+
+			// Save username
+			if (self::setUsername($username)===false) Response::error('Updating username failed!');
+
+			// Save password
+			if (self::setPassword($password)===false) Response::error('Updating password failed!');
 
 			return true;
 
 		}
 
-		exit('Error: Current password entered incorrectly!');
+		Response::error('Current password entered incorrectly!');
 
 	}
 
-	private function setUsername($username) {
+	/**
+	 * Sets a new username.
+	 * @return boolean Returns true when successful.
+	 */
+	private static function setUsername($username) {
 
-		# Check dependencies
-		self::dependencies(isset($this->database));
+		// Check dependencies
+		Validator::required(isset($username), __METHOD__);
 
-		# Hash username
+		// Hash username
 		$username = getHashedString($username);
 
-		# Execute query
-		# Do not prepare $username because it is hashed and save
-		# Preparing (escaping) the username would destroy the hash
-		$query	= Database::prepare($this->database, "UPDATE ? SET value = '$username' WHERE `key` = 'username'", array(LYCHEE_TABLE_SETTINGS));
-		$result	= $this->database->query($query);
-
-		if (!$result) {
-			Log::error($this->database, __METHOD__, __LINE__, $this->database->error);
-			return false;
-		}
+		// Execute query
+		// Do not prepare $username because it is hashed and save
+		// Preparing (escaping) the username would destroy the hash
+		if (self::set('username', $username, true)===false) return false;
 		return true;
 
 	}
 
-	private function setPassword($password) {
+	/**
+	 * Sets a new username.
+	 * @return boolean Returns true when successful.
+	 */
+	private static function setPassword($password) {
 
-		# Check dependencies
-		self::dependencies(isset($this->database));
+		// Check dependencies
+		Validator::required(isset($password), __METHOD__);
 
-		# Hash password
+		// Hash password
 		$password = getHashedString($password);
 
-		# Execute query
-		# Do not prepare $password because it is hashed and save
-		# Preparing (escaping) the password would destroy the hash
-		$query	= Database::prepare($this->database, "UPDATE ? SET value = '$password' WHERE `key` = 'password'", array(LYCHEE_TABLE_SETTINGS));
-		$result	= $this->database->query($query);
-
-		if (!$result) {
-			Log::error($this->database, __METHOD__, __LINE__, $this->database->error);
-			return false;
-		}
+		// Do not prepare $password because it is hashed and save
+		// Preparing (escaping) the password would destroy the hash
+		if (self::set('password', $password, true)===false) return false;
 		return true;
 
 	}
 
-	public function setDropboxKey($key) {
+	/**
+	 * Sets a new dropboxKey.
+	 * @return boolean Returns true when successful.
+	 */
+	public static function setDropboxKey($dropboxKey) {
 
-		# Check dependencies
-		self::dependencies(isset($this->database, $key));
-
-		if (strlen($key)<1||strlen($key)>50) {
-			Log::notice($this->database, __METHOD__, __LINE__, 'Dropbox key is either too short or too long');
+		if (strlen($dropboxKey)<1||strlen($dropboxKey)>50) {
+			Log::notice(Database::get(), __METHOD__, __LINE__, 'Dropbox key is either too short or too long');
 			return false;
 		}
 
-		# Execute query
-		$query	= Database::prepare($this->database, "UPDATE ? SET value = '?' WHERE `key` = 'dropboxKey'", array(LYCHEE_TABLE_SETTINGS, $key));
-		$result = $this->database->query($query);
-
-		if (!$result) {
-			Log::error($this->database, __METHOD__, __LINE__, $this->database->error);
-			return false;
-		}
+		if (self::set('dropboxKey', $dropboxKey)===false) return false;
 		return true;
 
 	}
 
-	public function setSortingPhotos($type, $order) {
-
-		# Check dependencies
-		self::dependencies(isset($this->database, $type, $order));
+	/**
+	 * Sets a new sorting for the photos.
+	 * @return boolean Returns true when successful.
+	 */
+	public static function setSortingPhotos($type, $order) {
 
 		$sorting = 'ORDER BY ';
 
-		# Set row
+		// Set row
 		switch ($type) {
 
-			case 'id':			$sorting .= 'id';
-								break;
-
-			case 'title':		$sorting .= 'title';
-								break;
-
-			case 'description':	$sorting .= 'description';
-								break;
-
-			case 'public':		$sorting .= 'public';
-								break;
-
-			case 'type':		$sorting .= 'type';
-								break;
-
-			case 'star':		$sorting .= 'star';
-								break;
-
-			case 'takestamp':	$sorting .= 'takestamp';
-								break;
-
-			default:			exit('Error: Unknown type for sorting!');
+			case 'id':          $sorting .= 'id'; break;
+			case 'title':       $sorting .= 'title'; break;
+			case 'description': $sorting .= 'description'; break;
+			case 'public':      $sorting .= 'public'; break;
+			case 'type':        $sorting .= 'type'; break;
+			case 'star':        $sorting .= 'star'; break;
+			case 'takestamp':   $sorting .= 'takestamp'; break;
+			default:            Log::error(Database::get(), __METHOD__, __LINE__, 'Could not update settings. Unknown type for sorting.');
+			                    return false;
+			                    break;
 
 		}
 
 		$sorting .= ' ';
 
-		# Set order
+		// Set order
 		switch ($order) {
 
-			case 'ASC':		$sorting .= 'ASC';
-							break;
-
-			case 'DESC':	$sorting .= 'DESC';
-							break;
-
-			default:		exit('Error: Unknown order for sorting!');
+			case 'ASC':  $sorting .= 'ASC'; break;
+			case 'DESC': $sorting .= 'DESC'; break;
+			default:     Log::error(Database::get(), __METHOD__, __LINE__, 'Could not update settings. Unknown order for sorting.');
+			             return false;
+			             break;
 
 		}
 
-		# Execute query
-		# Do not prepare $sorting because it is a true statement
-		# Preparing (escaping) the sorting would destroy it
-		# $sorting is save and can't contain user-input
-		$query	= Database::prepare($this->database, "UPDATE ? SET value = '$sorting' WHERE `key` = 'sortingPhotos'", array(LYCHEE_TABLE_SETTINGS));
-		$result	= $this->database->query($query);
-
-		if (!$result) {
-			Log::error($this->database, __METHOD__, __LINE__, $this->database->error);
-			return false;
-		}
+		// Do not prepare $sorting because it is a true statement
+		// Preparing (escaping) the sorting would destroy it
+		// $sorting is save and can't contain user-input
+		if (self::set('sortingPhotos', $sorting, true)===false) return false;
 		return true;
 
 	}
 
-	public function setSortingAlbums($type, $order) {
-
-		# Check dependencies
-		self::dependencies(isset($this->database, $type, $order));
+	/**
+	 * Sets a new sorting for the albums.
+	 * @return boolean Returns true when successful.
+	 */
+	public static function setSortingAlbums($type, $order) {
 
 		$sorting = 'ORDER BY ';
 
-		# Set row
+		// Set row
 		switch ($type) {
 
-			case 'id':			$sorting .= 'id';
-								break;
-
-			case 'title':		$sorting .= 'title';
-								break;
-
-			case 'description':	$sorting .= 'description';
-								break;
-
-			case 'public':		$sorting .= 'public';
-								break;
-
-			default:			exit('Error: Unknown type for sorting!');
+			case 'id':          $sorting .= 'id'; break;
+			case 'title':       $sorting .= 'title'; break;
+			case 'description': $sorting .= 'description'; break;
+			case 'public':      $sorting .= 'public'; break;
+			default:            Log::error(Database::get(), __METHOD__, __LINE__, 'Could not update settings. Unknown type for sorting.');
+			                    return false;
+			                    break;
 
 		}
 
 		$sorting .= ' ';
 
-		# Set order
+		// Set order
 		switch ($order) {
 
-			case 'ASC':		$sorting .= 'ASC';
-							break;
-
-			case 'DESC':	$sorting .= 'DESC';
-							break;
-
-			default:		exit('Error: Unknown order for sorting!');
+			case 'ASC':  $sorting .= 'ASC'; break;
+			case 'DESC': $sorting .= 'DESC'; break;
+			default:     Log::error(Database::get(), __METHOD__, __LINE__, 'Could not update settings. Unknown order for sorting.');
+			             return false;
+			             break;
 
 		}
 
-		# Execute query
-		# Do not prepare $sorting because it is a true statement
-		# Preparing (escaping) the sorting would destroy it
-		# $sorting is save and can't contain user-input
-		$query	= Database::prepare($this->database, "UPDATE ? SET value = '$sorting' WHERE `key` = 'sortingAlbums'", array(LYCHEE_TABLE_SETTINGS));
-		$result	= $this->database->query($query);
-
-		if (!$result) {
-			Log::error($this->database, __METHOD__, __LINE__, $this->database->error);
-			return false;
-		}
+		// Do not prepare $sorting because it is a true statement
+		// Preparing (escaping) the sorting would destroy it
+		// $sorting is save and can't contain user-input
+		if (self::set('sortingAlbums', $sorting, true)===false) return false;
 		return true;
 
 	}

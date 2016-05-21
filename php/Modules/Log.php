@@ -1,45 +1,43 @@
 <?php
 
-###
-# @name			Log Module
-# @copyright	2015 by Tobias Reich
-###
+namespace Lychee\Modules;
 
-if (!defined('LYCHEE')) exit('Error: Direct access is not allowed!');
+final class Log {
 
-class Log extends Module {
+	/**
+	 * @return boolean Returns true when successful.
+	 */
+	public static function notice($connection, $function, $line, $text = '') {
 
-	public static function notice($database, $function, $line, $text = '') {
-
-		return Log::text($database, 'notice', $function, $line, $text);
+		return Log::text($connection, 'notice', $function, $line, $text);
 
 	}
 
-	public static function warning($database, $function, $line, $text = '') {
+	/**
+	 * @return boolean Returns true when successful.
+	 */
+	public static function error($connection, $function, $line, $text = '') {
 
-		return Log::text($database, 'warning', $function, $line, $text);
-
-	}
-
-	public static function error($database, $function, $line, $text = '') {
-
-		return Log::text($database, 'error', $function, $line, $text);
+		return Log::text($connection, 'error', $function, $line, $text);
 
 	}
 
-	public static function text($database, $type, $function, $line, $text = '') {
+	/**
+	 * @return boolean Returns true when successful.
+	 */
+	private static function text($connection, $type, $function, $line, $text = '') {
 
-		# Check dependencies
-		Module::dependencies(isset($database, $type, $function, $line, $text));
+		// Check dependencies
+		Validator::required(isset($connection, $type, $function, $line, $text), __METHOD__);
 
-		# Get time
+		// Get time
 		$sysstamp = time();
 
-		# Save in database
-		$query	= Database::prepare($database, "INSERT INTO ? (time, type, function, line, text) VALUES ('?', '?', '?', '?', '?')", array(LYCHEE_TABLE_LOG, $sysstamp, $type, $function, $line, $text));
-		$result	= $database->query($query);
+		// Save in database
+		$query  = Database::prepare($connection, "INSERT INTO ? (time, type, function, line, text) VALUES ('?', '?', '?', '?', '?')", array(LYCHEE_TABLE_LOG, $sysstamp, $type, $function, $line, $text));
+		$result = Database::execute($connection, $query, null, null);
 
-		if (!$result) return false;
+		if ($result===false) return false;
 		return true;
 
 	}
