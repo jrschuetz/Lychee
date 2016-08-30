@@ -63,59 +63,12 @@ final class Settings {
 	 * Exits on error.
 	 * @return true Returns true when successful.
 	 */
-	public static function setLogin($oldPassword = '', $username, $password) {
+	public static function createLogin($username, $password, $role='user') {
 
-		if ($oldPassword===self::get()['password']||self::get()['password']===crypt($oldPassword, self::get()['password'])) {
+		// Create user
+        $users = new Users();
+		if ($users->addUser($username, $password, $role)===false) Response::error('adding user failed!');
 
-			// Save username
-			if (self::setUsername($username)===false) Response::error('Updating username failed!');
-
-			// Save password
-			if (self::setPassword($password)===false) Response::error('Updating password failed!');
-
-			return true;
-
-		}
-
-		Response::error('Current password entered incorrectly!');
-
-	}
-
-	/**
-	 * Sets a new username.
-	 * @return boolean Returns true when successful.
-	 */
-	private static function setUsername($username) {
-
-		// Check dependencies
-		Validator::required(isset($username), __METHOD__);
-
-		// Hash username
-		$username = getHashedString($username);
-
-		// Execute query
-		// Do not prepare $username because it is hashed and save
-		// Preparing (escaping) the username would destroy the hash
-		if (self::set('username', $username, true)===false) return false;
-		return true;
-
-	}
-
-	/**
-	 * Sets a new username.
-	 * @return boolean Returns true when successful.
-	 */
-	private static function setPassword($password) {
-
-		// Check dependencies
-		Validator::required(isset($password), __METHOD__);
-
-		// Hash password
-		$password = getHashedString($password);
-
-		// Do not prepare $password because it is hashed and save
-		// Preparing (escaping) the password would destroy the hash
-		if (self::set('password', $password, true)===false) return false;
 		return true;
 
 	}

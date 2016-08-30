@@ -47,7 +47,6 @@ final class User extends Access {
 			case 'Session::logout':			self::logoutAction(); break;
 
 			// Settings functions
-			case 'Settings::setLogin':		self::setLoginAction(); break;
 			case 'Settings::setSorting':	self::setSortingAction(); break;
 
 			// $_GET functions
@@ -214,14 +213,6 @@ final class User extends Access {
 	}
 
 	// Settings functions
-	private static function setLoginAction() {
-
-		Validator::required(isset($_POST['username'], $_POST['password']), __METHOD__);
-		if (isset($_POST['oldPassword'])===false) $_POST['oldPassword'] = '';
-		Response::json(Settings::setLogin($_POST['oldPassword'], $_POST['username'], $_POST['password']));
-	
-    }
-
 	private static function setSortingAction() {
 
 		Validator::required(isset($_POST['typeAlbums'], $_POST['orderAlbums'], $_POST['typePhotos'], $_POST['orderPhotos']), __METHOD__);

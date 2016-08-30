@@ -7,6 +7,7 @@ use Lychee\Modules\Photo;
 use Lychee\Modules\Response;
 use Lychee\Modules\Session;
 use Lychee\Modules\Settings;
+use Lychee\Modules\Users;
 use Lychee\Modules\Validator;
 use Lychee\Modules\Video;
 
@@ -53,7 +54,7 @@ final class Admin extends Access {
 			case 'Session::logout':			self::logoutAction(); break;
 
 			// Settings functions
-			case 'Settings::setLogin':		self::setLoginAction(); break;
+			case 'Settings::createLogin':	self::createLoginAction(); break;
 			case 'Settings::setSorting':	self::setSortingAction(); break;
 			case 'Settings::setDropboxKey':	self::setDropboxKeyAction(); break;
 
@@ -279,14 +280,11 @@ final class Admin extends Access {
 
 	// Settings functions
 
-	private static function setLoginAction() {
+	private static function createLoginAction() {
 
-		Validator::required(isset($_POST['username'], $_POST['password']), __METHOD__);
+		Validator::required(isset($_POST['username'], $_POST['password'], $_POST['role']), __METHOD__);
 
-
-
-		if (isset($_POST['oldPassword'])===false) $_POST['oldPassword'] = '';
-		Response::json(Settings::setLogin($_POST['oldPassword'], $_POST['username'], $_POST['password']));
+		Response::json(Settings::createLogin($_POST['password'], $_POST['username'], $_POST['role']));
 	}
 
 	private static function setSortingAction() {

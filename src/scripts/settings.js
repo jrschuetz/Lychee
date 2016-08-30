@@ -157,13 +157,13 @@ settings.createLogin = function() {
 
 		let params = {
 			username,
-			password
+			password,
+            role: 'admin'
 		}
 
-		api.post('Settings::setLogin', params, function(data) {
+		api.post('Settings::createLogin', params, function(data) {
 
 			if (data!==true) {
-
 				basicModal.show({
 					body: '<p>Unable to save login. Please try again with another username and password!</p>',
 					buttons: {
@@ -196,73 +196,6 @@ settings.createLogin = function() {
 			action: {
 				title: 'Create Login',
 				fn: action
-			}
-		}
-	})
-
-}
-
-settings.setLogin = function() {
-
-	const action = function(data) {
-
-		let oldPassword = data.oldPassword || ''
-		let username    = data.username    || ''
-		let password    = data.password    || ''
-
-		if (oldPassword.length<1) {
-			basicModal.error('oldPassword')
-			return false
-		}
-
-		if (username.length<1) {
-			basicModal.error('username')
-			return false
-		}
-
-		if (password.length<1) {
-			basicModal.error('password')
-			return false
-		}
-
-		basicModal.close()
-
-		let params = {
-			oldPassword,
-			username,
-			password
-		}
-
-		api.post('Settings::setLogin', params, function(data) {
-
-			if (data!==true) lychee.error(null, params, data)
-
-		})
-
-	}
-
-	let msg = `
-	          <p>
-	              Enter your current password:
-	              <input name='oldPassword' class='text' type='password' placeholder='Current Password' value=''>
-	          </p>
-	          <p>
-	              Your username and password will be changed to the following:
-	              <input name='username' class='text' type='text' placeholder='New Username' value=''>
-	              <input name='password' class='text' type='password' placeholder='New Password' value=''>
-	          </p>
-	          `
-
-	basicModal.show({
-		body: msg,
-		buttons: {
-			action: {
-				title: 'Change Login',
-				fn: action
-			},
-			cancel: {
-				title: 'Cancel',
-				fn: basicModal.close
 			}
 		}
 	})
