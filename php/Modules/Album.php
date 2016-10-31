@@ -1,10 +1,12 @@
 <?php
+
 namespace Lychee\Modules;
+
 use ZipArchive;
 
 final class Album {
 
-	private $albumIDs	= null;
+	private $albumIDs = null;
 
 	/**
 	 * @return boolean Returns true when successful.
@@ -13,25 +15,32 @@ final class Album {
 
 		// Init vars
 		$this->albumIDs = $albumIDs;
+
 		return true;
 
 	}
+
 	/**
 	 * @return string|false ID of the created album.
 	 */
-	public function add($title = 'Untitled', $public = 0, $visible = 1) {
+	public function add($title = 'Untitled') {
+
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
+
 		// Properties
 		$id       = generateID();
 		$sysstamp = time();
 		$public   = 0;
 		$visible  = 1;
+
 		// Database
 		$query  = Database::prepare(Database::get(), "INSERT INTO ? (id, title, sysstamp, public, visible) VALUES ('?', '?', '?', '?', '?')", array(LYCHEE_TABLE_ALBUMS, $id, $title, $sysstamp, $public, $visible));
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
+
 		if ($result===false) return false;
 		return $id;
 
@@ -79,7 +88,9 @@ final class Album {
 	 */
 	public function get() {
 
+		// Check dependencies
 		Validator::required(isset($this->albumIDs), __METHOD__);
+
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
@@ -88,42 +99,46 @@ final class Album {
 
 			case 'f':
 				$return['public'] = '0';
-				$query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url FROM ? WHERE star = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+				$query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE star = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
 				break;
 
 			case 's':
 				$return['public'] = '0';
-				$query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url FROM ? WHERE public = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+				$query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE public = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
 				break;
 
 			case 'r':
 				$return['public'] = '0';
-				$query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url FROM ? WHERE LEFT(id, 10) >= unix_timestamp(DATE_SUB(NOW(), INTERVAL 1 DAY)) " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+				$query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE LEFT(id, 10) >= unix_timestamp(DATE_SUB(NOW(), INTERVAL 1 DAY)) " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
 				break;
 
 			case '0':
 				$return['public'] = '0';
-				$query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url FROM ? WHERE album = 0 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+				$query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE album = 0 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
 				break;
 
 			default:
                 $query = '';
-            
+
                 if ($_SESSION['role'] === 'admin') {
-                    $query  = Database::prepare(Database::get(), "SELECT * FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
+					$query  = Database::prepare(Database::get(), "SELECT * FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
                 } else {
                     $query	= Database::prepare(Database::get(), "SELECT a.*, p.view, p.upload, p.erase FROM ? a JOIN ? p on ( a.id = p.album_id) WHERE id = '?' and p.user_id = '?' and p.view = '1' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $this->albumIDs, $_SESSION['userid']));
                 }
-                $albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-                $return = $albums->fetch_assoc();
-                $return = Album::prepareData($return);
-                $query  = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url FROM ? WHERE album = '?' " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, $this->albumIDs));
-                break;
+				$albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+				$return = $albums->fetch_assoc();
+				$return = Album::prepareData($return);
+				$query  = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE album = '?' " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, $this->albumIDs));
+				break;
+
 		}
 
 		// Get photos
-		$photos				= Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-		$previousPhotoID	= '';
+		$photos          = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+		$previousPhotoID = '';
+
+		if ($photos===false) return false;
+
 		while ($photo = $photos->fetch_assoc()) {
 
 			// Turn data from the database into a front-end friendly format
@@ -131,7 +146,7 @@ final class Album {
 
 			// Set previous and next photoID for navigation purposes
 			$photo['previousPhoto'] = $previousPhotoID;
-			$photo['nextPhoto']		= '';
+			$photo['nextPhoto']     = '';
 
 			// Set current photoID as nextPhoto of previous photo
 			if ($previousPhotoID!=='') $return['content'][$previousPhotoID]['nextPhoto'] = $photo['id'];
@@ -150,20 +165,20 @@ final class Album {
 		} else {
 
 			// Enable next and previous for the first and last photo
-			$lastElement	= end($return['content']);
-			$lastElementId	= $lastElement['id'];
-			$firstElement	= reset($return['content']);
-			$firstElementId	= $firstElement['id'];
+			$lastElement    = end($return['content']);
+			$lastElementId  = $lastElement['id'];
+			$firstElement   = reset($return['content']);
+			$firstElementId = $firstElement['id'];
 
 			if ($lastElementId!==$firstElementId) {
-				$return['content'][$lastElementId]['nextPhoto']			= $firstElementId;
-				$return['content'][$firstElementId]['previousPhoto']	= $lastElementId;
+				$return['content'][$lastElementId]['nextPhoto']      = $firstElementId;
+				$return['content'][$firstElementId]['previousPhoto'] = $lastElementId;
 			}
 
 		}
 
-		$return['id']	= $this->albumIDs;
-		$return['num']	= $photos->num_rows;
+		$return['id']  = $this->albumIDs;
+		$return['num'] = $photos->num_rows;
 
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
@@ -171,6 +186,7 @@ final class Album {
 		return $return;
 
 	}
+
 	/**
 	 * Starts a download of an album.
 	 * @return resource|boolean Sends a ZIP-file or returns false on failure.
@@ -188,6 +204,7 @@ final class Album {
 			array_map('chr', range(0,31)),
 			array("<", ">", ":", '"', "/", "\\", "|", "?", "*")
 		);
+
 		// Photos query
 		switch($this->albumIDs) {
 			case 's':
@@ -245,6 +262,7 @@ final class Album {
 		$photos = Database::execute(Database::get(), $photos, __METHOD__, __LINE__);
 
 		if ($album===null) return false;
+
 		// Check if album empty
 		if ($photos->num_rows==0) {
 			Log::error(Database::get(), __METHOD__, __LINE__, 'Could not create ZipArchive without images');
@@ -330,7 +348,6 @@ final class Album {
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
 
 		if ($result===false) return false;
-        
 		return true;
 
 	}
@@ -354,7 +371,6 @@ final class Album {
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
 
 		if ($result===false) return false;
-
 		return true;
 
 	}
@@ -375,7 +391,9 @@ final class Album {
 		// Execute query
 		$query  = Database::prepare(Database::get(), "SELECT public FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
 		$albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
 		if ($albums===false) return false;
+
 		// Get album object
 		$album = $albums->fetch_object();
 
@@ -384,6 +402,7 @@ final class Album {
 			Log::error(Database::get(), __METHOD__, __LINE__, 'Could not find specified album');
 			return false;
 		}
+
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
 
@@ -408,7 +427,9 @@ final class Album {
 		// Execute query
 		$query  = Database::prepare(Database::get(), "SELECT downloadable FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
 		$albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
 		if ($albums===false) return false;
+
 		// Get album object
 		$album = $albums->fetch_object();
 
@@ -417,6 +438,7 @@ final class Album {
 			Log::error(Database::get(), __METHOD__, __LINE__, 'Could not find specified album');
 			return false;
 		}
+
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
 
@@ -424,6 +446,7 @@ final class Album {
 		return false;
 
 	}
+
 	/**
 	 * @return boolean Returns true when successful.
 	 */
@@ -443,13 +466,17 @@ final class Album {
 		// Set public
 		$query  = Database::prepare(Database::get(), "UPDATE ? SET public = '?', visible = '?', downloadable = '?', password = NULL WHERE id IN (?)", array(LYCHEE_TABLE_ALBUMS, $public, $visible, $downloadable, $this->albumIDs));
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
 		if ($result===false) return false;
 
 		// Reset permissions for photos
 		if ($public===1) {
+
 			$query  = Database::prepare(Database::get(), "UPDATE ? SET public = 0 WHERE album IN (?)", array(LYCHEE_TABLE_PHOTOS, $this->albumIDs));
 			$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
 			if ($result===false) return false;
+
 		}
 
 		// Call plugins
@@ -457,7 +484,6 @@ final class Album {
 
 		// Set password
 		if (isset($password)&&strlen($password)>0) return $this->setPassword($password);
-
 		return true;
 
 	}
@@ -497,7 +523,6 @@ final class Album {
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
 
 		if ($result===false) return false;
-        
 		return true;
 
 	}
@@ -516,7 +541,9 @@ final class Album {
 		// Execute query
 		$query  = Database::prepare(Database::get(), "SELECT password FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
 		$albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
 		if ($albums===false) return false;
+
 		// Get album object
 		$album = $albums->fetch_object();
 
@@ -525,6 +552,7 @@ final class Album {
 			Log::error(Database::get(), __METHOD__, __LINE__, 'Could not find specified album');
 			return false;
 		}
+
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
 
@@ -569,7 +597,6 @@ final class Album {
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
 
 		if ($result===false) return false;
-
 		return true;
 
 	}
@@ -587,21 +614,26 @@ final class Album {
 
 		// Init vars
 		$photoIDs = array();
+
 		// Execute query
 		$query  = Database::prepare(Database::get(), "SELECT id FROM ? WHERE album IN (?)", array(LYCHEE_TABLE_PHOTOS, $this->albumIDs));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		if ($photos===false) return false;
+
 		// Only delete photos when albums contain photos
 		if ($photos->num_rows>0) {
+
 			// Add each id to photoIDs
 			while ($row = $photos->fetch_object()) $photoIDs[] = $row->id;
 
 			// Convert photoIDs to a string
 			$photoIDs = implode(',', $photoIDs);
+
 			// Delete all photos
 			$photo = new Photo($photoIDs);
 			if ($photo->delete()!==true) return false;
+
 		}
 
 		// Delete albums
@@ -612,7 +644,6 @@ final class Album {
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
 
 		if ($result===false) return false;
-        
 		return true;
 
 	}
