@@ -47,9 +47,6 @@ final class Album {
 		// into a front-end friendly format: id, title, public, sysstamp, password
 		// Note that some attributes remain unchanged
 
-
-
-
 		// Init
 		$album = null;
 
@@ -81,9 +78,6 @@ final class Album {
 	 * @return array|false Returns an array of photos and album information or false on failure.
 	 */
 	public function get() {
-
-		// Check dependencies
-
 
 		Validator::required(isset($this->albumIDs), __METHOD__);
 		// Call plugins
