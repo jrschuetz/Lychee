@@ -10,7 +10,8 @@ final class Database {
 		'030001', // 3.0.1
 		'030003', // 3.0.3
 		'030100', // 3.1.0
-		'030102' // 3.1.2
+		'030102', // 3.1.2
+        '030103'  // 3.1.3
 	);
 	/**
 	 * @return object Returns a new or cached connection.
