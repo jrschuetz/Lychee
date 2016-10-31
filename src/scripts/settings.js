@@ -140,8 +140,9 @@ settings.createLogin = function() {
 
 	const action = function(data) {
 
-		let username = data.username
-		let password = data.password
+		var params,
+			username = data.username,
+			password = data.password;
 
 		if (username.length<1) {
 			basicModal.error('username')
@@ -155,12 +156,12 @@ settings.createLogin = function() {
 
 		basicModal.close()
 
-		let params = {
+        params = {
 			username,
 			password,
             role: 'admin'
 		}
-
+        
 		api.post('Settings::createLogin', params, function(data) {
 
 			if (data!==true) {

@@ -284,7 +284,7 @@ final class Admin extends Access {
 
 		Validator::required(isset($_POST['username'], $_POST['password'], $_POST['role']), __METHOD__);
 
-		Response::json(Settings::createLogin($_POST['password'], $_POST['username'], $_POST['role']));
+		Response::json(Settings::createLogin($_POST['username'], $_POST['password'], $_POST['role']));
 	}
 
 	private static function setSortingAction() {

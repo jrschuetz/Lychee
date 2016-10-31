@@ -16,7 +16,6 @@ users.addUser = function() {
 			username = data.username,
 			password = data.password;
 
-
 		var role = $('.basicModal select#role').val();
 	
 		if (username.length<1) {
