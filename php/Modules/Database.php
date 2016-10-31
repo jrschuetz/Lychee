@@ -39,7 +39,8 @@ final class Database {
 		// Open a new connection to the MySQL server
 		$connection = self::connect($host, $user, $password);
 		// Check if the connection was successful
-		if ($connection===false) Response::error($connection->connect_error);
+		if ($connection===false) Response::error(self::connect_error());
+
 		if (self::setCharset($connection)===false) Response::error('Could not set database charset!');
 		// Create database
 		if (self::createDatabase($connection, $name)===false) Response::error('Could not create database!');
@@ -60,6 +61,15 @@ final class Database {
 		if ($connection->connect_errno) return false;
 		return $connection;
 	}
+	/**
+	 * @return string Returns the string description of the last connect error
+	 */
+	private static function connect_error() {
+
+		return mysqli_connect_error();
+
+	}
+
 	/**
 	 * @return boolean Returns true when successful.
 	 */

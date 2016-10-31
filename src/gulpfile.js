@@ -29,6 +29,7 @@ paths.view = {
 	],
 	scripts: [
 		'node_modules/jquery/dist/jquery.min.js',
+		'node_modules/basiccontext/dist/basicContext.min.js',
 		'../dist/_view--javascript.js'
 	],
 	svg: [
