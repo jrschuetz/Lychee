@@ -70,8 +70,8 @@ final class Users {
       $query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
       $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
       if($result->num_rows !== 1){
-        Log::error(Database::get(), __METHOD__, __LINE__, "Multiple users with the same name exists...");
-        exit("Failed to login");
+        Log::error(Database::get(), __METHOD__, __LINE__, "Unknown username: ". $username ." tried to login");
+        return false;
       }
       $user = $result->fetch_object();
 
