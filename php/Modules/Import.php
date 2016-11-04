@@ -8,7 +8,7 @@ final class Import {
 	 * Creates an array similar to a file upload array and adds the photo to Lychee.
 	 * @return boolean Returns true when photo import was successful.
 	 */
-	private function photo($path, $albumID = 0) {
+	private function photo($path, $albumID = null) {
 		// No need to validate photo type and extension in this function.
 		// $photo->add will take care of it.
 
@@ -29,7 +29,7 @@ final class Import {
 
 	}
 
-	private function video($path, $albumID = 0) {
+	private function video($path, $albumID = null) {
 		$size	= filesize($path);
 		$video	= new Video(null);
 
@@ -48,7 +48,7 @@ final class Import {
 	/**
 	 * @return boolean Returns true when successful.
 	 */
-	public function url($urls, $albumID = 0) {
+	public function url($urls, $albumID = null) {
 
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());

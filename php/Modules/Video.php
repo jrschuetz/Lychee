@@ -108,6 +108,13 @@ class Video extends Module {
 				$albumID = 0;
 				break;
 
+			case 'u':
+				# u for unsorted
+				$public  = 0;
+				$star    = 0;
+				$albumID = 0;
+				break;
+                
 			default:
 				$star   = 0;
 				$public = 0;

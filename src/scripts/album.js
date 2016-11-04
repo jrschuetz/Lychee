@@ -13,7 +13,7 @@ album.getID = function() {
 	let id = null
 
 	let isID = (id) => {
-		if (id==='0' || id==='f' || id==='s' || id==='r') return true
+		if (id==='u' || id==='f' || id==='s' || id==='r') return true
 		return $.isNumeric(id)
 	}
 
@@ -30,8 +30,8 @@ album.getID = function() {
 }
 
 album.load = function(albumID, refresh = false) {
-
-	password.get(albumID, function() {
+	
+    password.get(albumID, function() {
 
 		if (refresh===false) lychee.animate('.content', 'contentZoomOut')
 
@@ -182,7 +182,7 @@ album.delete = function(albumIDs) {
 
 	}
 
-	if (albumIDs.toString()==='0') {
+	if (albumIDs.toString()==='u') {
 
 		action.title = 'Clear Unsorted'
 		cancel.title = 'Keep Unsorted'

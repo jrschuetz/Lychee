@@ -41,7 +41,7 @@ view.albums = {
 			}
 
 			// Albums
-			if (albums.json.albums && albums.json.num!==0) {
+			if (albums.json.albums && albums.json.num!==null) {
 
 				$.each(albums.json.albums, function() {
 					albums.parse(this)
@@ -124,7 +124,7 @@ view.album = {
 				case 'r':
 					lychee.setTitle('Recent', false)
 					break
-				case '0':
+				case 'u':
 					lychee.setTitle('Unsorted', false)
 					break
 				default:

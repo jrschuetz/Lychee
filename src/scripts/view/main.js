@@ -145,7 +145,7 @@ const loadPhotoInfo = function(photoID) {
 
 	let params = {
 		photoID,
-		albumID  : 0,
+		albumID  : null,
 		password : ''
 	}
 

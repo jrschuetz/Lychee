@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS `?` (
   `id` bigint(14) unsigned NOT NULL,
   `title` varchar(100) NOT NULL DEFAULT '',
   `description` varchar(1000) DEFAULT '',
+  `user_id` int(11) NOT NULL,
   `sysstamp` int(11) NOT NULL,
   `public` tinyint(1) NOT NULL DEFAULT '0',
   `visible` tinyint(1) NOT NULL DEFAULT '1',

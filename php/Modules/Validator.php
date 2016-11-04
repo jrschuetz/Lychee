@@ -20,7 +20,7 @@ final class Validator {
 
 	public static function isAlbumID($albumID) {
 
-		return (preg_match('/^[0-9sfr]{1,}$/', $albumID)===1 ? true : false);
+		return (preg_match('/^[0-9usfr]{1,}$/', $albumID)===1 ? true : false);
 
 	}
 

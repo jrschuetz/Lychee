@@ -35,7 +35,7 @@ final class Album {
 		$visible  = 1;
 
 		// Database
-		$query  = Database::prepare(Database::get(), "INSERT INTO ? (id, title, sysstamp, public, visible) VALUES ('?', '?', '?', '?', '?')", array(LYCHEE_TABLE_ALBUMS, $id, $title, $sysstamp, $public, $visible));
+		$query  = Database::prepare(Database::get(), "INSERT INTO ? (id, title, user_id, sysstamp, public, visible) VALUES ('?', '?', '?', '?', '?', '?')", array(LYCHEE_TABLE_ALBUMS, $id, $title, $_SESSION['userid'], $sysstamp, $public, $visible));
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		// Call plugins
@@ -99,22 +99,46 @@ final class Album {
 
 			case 'f':
 				$return['public'] = '0';
-				$query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE star = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+                
+                if ($_SESSION['role'] === 'admin') {
+                    $query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE star = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+                } else {
+                	$query = Database::prepare(Database::get(), " SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium from lychee_photos pic WHERE user_id = '?' AND star = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, $_SESSION['userid']));
+                }
+                
 				break;
 
 			case 's':
 				$return['public'] = '0';
-				$query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE public = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+				
+                if ($_SESSION['role'] === 'admin') {
+                    $query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE public = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+                } else {
+                    $query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE user_id = '?' AND public = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, $_SESSION['userid']));
+                }
+
 				break;
 
 			case 'r':
 				$return['public'] = '0';
-				$query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE LEFT(id, 10) >= unix_timestamp(DATE_SUB(NOW(), INTERVAL 1 DAY)) " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+                
+                if ($_SESSION['role'] === 'admin') {
+                    $query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE LEFT(id, 10) >= unix_timestamp(DATE_SUB(NOW(), INTERVAL 1 DAY)) " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+                } else {
+                    $query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE user_id = '?' AND LEFT(id, 10) >= unix_timestamp(DATE_SUB(NOW(), INTERVAL 1 DAY)) " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, $_SESSION['userid']));
+                }
+                
 				break;
 
-			case '0':
+			case 'u':
 				$return['public'] = '0';
-				$query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE album = 0 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+                
+                if ($_SESSION['role'] === 'admin') {
+                    $query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE album is NULL " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+                } else {
+                    $query = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE user_id = '?' AND album is NULL " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, $_SESSION['userid']));
+                }
+                
 				break;
 
 			default:
@@ -219,13 +243,14 @@ final class Album {
 				$photos   = Database::prepare(Database::get(), 'SELECT title, url FROM ? WHERE LEFT(id, 10) >= unix_timestamp(DATE_SUB(NOW(), INTERVAL 1 DAY)) GROUP BY checksum', array(LYCHEE_TABLE_PHOTOS));
 				$zipTitle = 'Recent';
 				break;
+            // TODO: add unsorted 'u' 
 			default:
 				$photos   = Database::prepare(Database::get(), "SELECT title, url FROM ? WHERE album = '?'", array(LYCHEE_TABLE_PHOTOS, $this->albumIDs));
 				$zipTitle = 'Unsorted';
 		}
 
 		// Get title from database when album is not a SmartAlbum
-		if ($this->albumIDs!=0&&is_numeric($this->albumIDs)) {
+		if ($this->albumIDs!=null&&is_numeric($this->albumIDs)) {
 
 			$query = Database::prepare(Database::get(), "SELECT title FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
 			$album = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
@@ -386,7 +411,7 @@ final class Album {
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
-		if ($this->albumIDs==='0'||$this->albumIDs==='s'||$this->albumIDs==='f') return false;
+		if ($this->albumIDs==='u'||$this->albumIDs==='s'||$this->albumIDs==='f') return false;
 
 		// Execute query
 		$query  = Database::prepare(Database::get(), "SELECT public FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
@@ -422,7 +447,7 @@ final class Album {
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
-		if ($this->albumIDs==='0'||$this->albumIDs==='s'||$this->albumIDs==='f'||$this->albumIDs==='r') return false;
+		if ($this->albumIDs==='u'||$this->albumIDs==='s'||$this->albumIDs==='f'||$this->albumIDs==='r') return false;
 
 		// Execute query
 		$query  = Database::prepare(Database::get(), "SELECT downloadable FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));

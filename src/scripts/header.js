@@ -151,7 +151,7 @@ header.setMode = function(mode) {
 
 			if (albumID==='s' || albumID==='f' || albumID==='r') {
 				$('#button_info_album, #button_trash_album, #button_share_album').hide()
-			} else if (albumID==='0') {
+			} else if (albumID==='u') {
 				$('#button_info_album, #button_share_album').hide()
 				$('#button_trash_album').show()
 			} else {

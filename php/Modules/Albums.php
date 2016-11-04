@@ -97,7 +97,11 @@ final class Albums {
 		 * Unsorted
 		 */
 
-		$query    = Database::prepare(Database::get(), 'SELECT thumbUrl FROM ? WHERE album = 0 ' . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+        if ($_SESSION['role'] === 'admin') {
+            $query = Database::prepare(Database::get(), "SELECT thumbUrl FROM ? WHERE album is null " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+        } else {
+            $query = Database::prepare(Database::get(), "SELECT thumbUrl FROM ? WHERE user_id = '?' AND album is null " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, $_SESSION['userid']));
+        }
 		$unsorted = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 		$i        = 0;
 
@@ -119,7 +123,11 @@ final class Albums {
 		 * Starred
 		 */
 
-		$query   = Database::prepare(Database::get(), 'SELECT thumbUrl FROM ? WHERE star = 1 ' . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+        if ($_SESSION['role'] === 'admin') {
+            $query = Database::prepare(Database::get(), "SELECT thumbUrl FROM ? WHERE star = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+        } else {
+            $query = Database::prepare(Database::get(), "SELECT thumbUrl FROM ? WHERE user_id = '?' AND star = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, $_SESSION['userid']));
+        }
 		$starred = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 		$i       = 0;
 
@@ -141,7 +149,11 @@ final class Albums {
 		 * Public
 		 */
 
-		$query  = Database::prepare(Database::get(), 'SELECT thumbUrl FROM ? WHERE public = 1 ' . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+        if ($_SESSION['role'] === 'admin') {
+            $query = Database::prepare(Database::get(), "SELECT thumbUrl FROM ? WHERE public = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+        } else {
+            $query = Database::prepare(Database::get(), "SELECT thumbUrl FROM ? WHERE user_id = '?' AND public = 1 " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, $_SESSION['userid']));
+        }
 		$public = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 		$i      = 0;
 
@@ -163,7 +175,11 @@ final class Albums {
 		 * Recent
 		 */
 
-		$query  = Database::prepare(Database::get(), 'SELECT thumbUrl FROM ? WHERE LEFT(id, 10) >= unix_timestamp(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+        if ($_SESSION['role'] === 'admin') {
+            $query = Database::prepare(Database::get(), "SELECT thumbUrl FROM ? WHERE LEFT(id, 10) >= unix_timestamp(DATE_SUB(NOW(), INTERVAL 1 DAY)) " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS));
+        } else {
+            $query = Database::prepare(Database::get(), "SELECT thumbUrl FROM ? WHERE user_id = '?' AND LEFT(id, 10) >= unix_timestamp(DATE_SUB(NOW(), INTERVAL 1 DAY)) " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, $_SESSION['userid']));
+        }
 		$recent = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 		$i      = 0;
 

@@ -70,7 +70,7 @@ albums.parse = function(album) {
 albums._createSmartAlbums = function(data) {
 
 	data.unsorted = {
-		id       : 0,
+		id       : 'u',
 		title    : 'Unsorted',
 		sysdate  : data.unsorted.num + ' photos',
 		unsorted : '1',

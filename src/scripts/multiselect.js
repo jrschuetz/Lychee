@@ -198,7 +198,7 @@ multiselect.getSelection = function(e) {
 
 			let id = $(this).data('id')
 
-			if (id!=='0' && id!==0 && id!=='f' && id!=='s' && id!=='r' && id!=null) {
+			if (id!==null && id!=='u' && id!=='f' && id!=='s' && id!=='r' && id!=null) {
 
 				ids.push(id)
 				$(this).addClass('active')

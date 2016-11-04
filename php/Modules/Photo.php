@@ -41,7 +41,7 @@ final class Photo {
 	 * Use $returnOnError if you want to handle errors by your own.
 	 * @return string|false ID of the added photo.
 	 */
-	public function add(array $files, $albumID = 0, $returnOnError = false) {
+	public function add(array $files, $albumID = 'u', $returnOnError = false) {
 
 		// Check permissions
 		if (hasPermissions(LYCHEE_UPLOADS)===false||
@@ -53,7 +53,7 @@ final class Photo {
 		}
     
         // Check rights
-        if ($_SESSION['role'] == 'user'){
+        if ($_SESSION['role'] == 'user' && !in_array( $albumID,  array('s', 'f', 'r', 'u'))){
             $values = array(LYCHEE_TABLE_PRIVILEGES, $albumID, $_SESSION['userid']);
             $query  = Database::prepare(Database::get(), "SELECT * FROM ? WHERE album_id=? AND user_id=? AND upload=1", $values);
             $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
@@ -73,21 +73,28 @@ final class Photo {
 				// s for public (share)
 				$public  = 1;
 				$star    = 0;
-				$albumID = 0;
+				$albumID = 'NULL';
 				break;
 
 			case 'f':
 				// f for starred (fav)
 				$star    = 1;
 				$public  = 0;
-				$albumID = 0;
+				$albumID = 'NULL';
 				break;
 
 			case 'r':
 				// r for recent
 				$public  = 0;
 				$star    = 0;
-				$albumID = 0;
+				$albumID = 'NULL';
+				break;
+            
+            case 'u':
+				// u for unsorted
+				$public  = 0;
+				$star    = 0;
+				$albumID = 'NULL';
 				break;
 
 			default:
@@ -250,8 +257,8 @@ final class Photo {
 
 		}
 
-		$values = array(LYCHEE_TABLE_PHOTOS, $id, $info['title'], $photo_name, $info['description'], $info['tags'], $info['type'], $info['width'], $info['height'], $info['size'], $info['iso'], $info['aperture'], $info['make'], $info['model'], $info['shutter'], $info['focal'], $info['takestamp'], $path_thumb, $albumID, $public, $star, $checksum, $medium);
-		$query  = Database::prepare(Database::get(), "INSERT INTO ? (id, title, url, description, tags, type, width, height, size, iso, aperture, make, model, shutter, focal, takestamp, thumbUrl, album, public, star, checksum, medium) VALUES ('?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?')", $values);
+		$values = array(LYCHEE_TABLE_PHOTOS, $id, $info['title'], $photo_name, $info['description'], $_SESSION['userid'], $info['tags'], $info['type'], $info['width'], $info['height'], $info['size'], $info['iso'], $info['aperture'], $info['make'], $info['model'], $info['shutter'], $info['focal'], $info['takestamp'], $path_thumb, $albumID, $public, $star, $checksum, $medium);
+		$query  = Database::prepare(Database::get(), "INSERT INTO ? (id, title, url, description, user_id, tags, type, width, height, size, iso, aperture, make, model, shutter, focal, takestamp, thumbUrl, album, public, star, checksum, medium) VALUES ('?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', ?, '?', '?', '?', '?')", $values);
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		if ($result===false) {
@@ -644,7 +651,7 @@ final class Photo {
 	}
 
 	/**
-	 * Rurns photo-attributes into a front-end friendly format. Note that some attributes remain unchanged.
+	 * Returns photo-attributes in a front-end friendly format. Note that some attributes remain unchanged.
 	 * @return array Returns photo-attributes in a normalized structure.
 	 */
 	public static function prepareData(array $data) {
@@ -706,9 +713,12 @@ final class Photo {
 		
 		// First check if the user has rights to view photo
 		$query = '';
-		if ($_SESSION['role'] == 'user' && $albumID != 'false') {
-        	$query = Database::prepare(Database::get(), "SELECT * FROM ? pic JOIN ? p ON p.album_id=pic.album WHERE pic.album=? AND p.view=1 AND p.user_id=?", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PRIVILEGES, $albumID, $_SESSION['userid']));
-		} else {
+		if ($_SESSION['role'] == 'user' && in_array( $albumID,  array('s', 'f', 'r', 'u'))) { // Load photo that is in a smart album
+            $query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE user_id=? AND id = '?'", array(LYCHEE_TABLE_PHOTOS, $_SESSION['userid'], $this->photoIDs));
+        }
+		elseif ($_SESSION['role'] == 'user' && $albumID != 'false') { // TODO: check 'false' case
+        	$query = Database::prepare(Database::get(), "SELECT * FROM ? pic JOIN ? p ON p.album_id=pic.album WHERE pic.album=? AND p.view=1 AND p.user_id=? and pic.id=?", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PRIVILEGES, $albumID, $_SESSION['userid'], $this->photoIDs));
+        } else { // Admin sees all pictures // TODO: provide setting to restrict view to own photos only
         	// Get photo
         	$query  = Database::prepare(Database::get(), "SELECT * FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS, $this->photoIDs));
 		}
@@ -746,7 +756,7 @@ final class Photo {
 
 			// Only show photo as public when parent album is public
 			// Check if parent album is not 'Unsorted'
-			if ($photo['album']!=='0') {
+			if ($photo['album']!==null) {
 
 				// Get album
 				$query  = Database::prepare(Database::get(), "SELECT public FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $photo['album']));
@@ -797,7 +807,8 @@ final class Photo {
 
 		$iptcArray = array();
 		$info      = getimagesize($url, $iptcArray);
-
+        $owner     = 
+                
 		// General information
 		$return['type']        = $info['mime'];
 		$return['width']       = $info[0];

@@ -79,7 +79,7 @@ upload.start = {
 
 				albums.refresh()
 
-				if (album.getID()===false) lychee.goto('0')
+				if (album.getID()===false) lychee.goto('u') // Unsorted
 				else                       album.load(albumID)
 
 			}
@@ -221,7 +221,7 @@ upload.start = {
 		}
 
 		if (files.length<=0) return false
-		if (albumID===false || visible.albums()===true) albumID = 0
+		if (albumID===false || visible.albums()===true) albumID = 'u'
 
 		// TODO: remove supportedFileTypes from js
 		var supportedImageFileTypes = ['image/jpeg', '.jpeg', 'image/jpg', 'jpg', 'image/png', 'png', 'image/gif', 'gif'];
@@ -262,7 +262,7 @@ upload.start = {
 
 		url = (typeof url === 'string' ? url : '')
 
-		if (albumID===false) albumID = 0
+		if (albumID===false) albumID = 'u'
 
 		const action = function(data) {
 
@@ -315,7 +315,7 @@ upload.start = {
 
 						albums.refresh()
 
-						if (album.getID()===false) lychee.goto('0')
+						if (album.getID()===false) lychee.goto('u')
 						else                       album.load(albumID)
 
 					})
@@ -345,7 +345,7 @@ upload.start = {
 	server: function() {
 
 		let albumID = album.getID()
-		if (albumID===false) albumID = 0
+		if (albumID===false) albumID = 'u'
 
 		const action = function(data) {
 
@@ -419,7 +419,7 @@ upload.start = {
 
 					}
 
-					if (album.getID()===false) lychee.goto('0')
+					if (album.getID()===false) lychee.goto('u')
 					else                       album.load(albumID)
 
 					// Show close button
@@ -450,7 +450,7 @@ upload.start = {
 	dropbox: function() {
 
 		let albumID = album.getID()
-		if (albumID===false) albumID = 0
+		if (albumID===false) albumID = 'u'
 
 		const success = function(files) {
 
@@ -508,7 +508,7 @@ upload.start = {
 
 					albums.refresh()
 
-					if (album.getID()===false) lychee.goto('0')
+					if (album.getID()===false) lychee.goto('u')
 					else                       album.load(albumID)
 
 				})

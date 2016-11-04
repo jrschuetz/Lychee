@@ -73,7 +73,7 @@ contextMenu.album = function(albumID, e) {
 	// Only admin can do stuff to the albums
 	if(lychee.role !== 'admin') return false;
 
-	if (albumID==='0' || albumID==='f' || albumID==='s' || albumID==='r') return false
+	if (albumID==='u' || albumID==='f' || albumID==='s' || albumID==='r') return false
 
 	// Show merge-item when there's more than one album
 	let showMerge = (albums.json && albums.json.albums && Object.keys(albums.json.albums).length>1)
@@ -328,7 +328,7 @@ contextMenu.move = function(photoIDs, e) {
 			})
 
 			// Show Unsorted when unsorted is not the current album
-			if (album.getID()!=='0') {
+			if (album.getID()!==null) {
 
 				items.unshift({ })
 				items.unshift({ title: 'Unsorted', fn: () => photo.setAlbum(photoIDs, 0) })
