@@ -146,10 +146,17 @@ final class Album {
 
                 if ($_SESSION['role'] === 'admin') {
 					$query  = Database::prepare(Database::get(), "SELECT * FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
+                    $albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
                 } else {
-                    $query	= Database::prepare(Database::get(), "SELECT a.*, p.view, p.upload, p.erase FROM ? a JOIN ? p on ( a.id = p.album_id) WHERE id = '?' and p.user_id = '?' and p.view = '1' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $this->albumIDs, $_SESSION['userid']));
+                    $query	= Database::prepare(Database::get(), "SELECT * FROM ? WHERE id = '?' AND user_id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs, $_SESSION['userid']));
+                    $albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+                    
+                    if ($photos->num_rows === 0) { // Not an album created by the user, check if album is shared with user
+                        $query	= Database::prepare(Database::get(), "SELECT a.*, p.view, p.upload, p.erase FROM ? a JOIN ? p on ( a.id = p.album_id) WHERE id = '?' and p.user_id = '?' and p.view = '1' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $_SESSION['userid'], $this->albumIDs, $_SESSION['userid']));
+                        $albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+                    }
                 }
-				$albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
 				$return = $albums->fetch_assoc();
 				$return = Album::prepareData($return);
 				$query  = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE album = '?' " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, $this->albumIDs));
