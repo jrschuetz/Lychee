@@ -165,7 +165,7 @@ final class User extends Access {
 
 	private static function uploadVideoAction() {
 		
-        Validator::required(isset($_FILES, $_POST['albumID'], __METHOD__);
+        Validator::required(isset($_FILES, $_POST['albumID']), __METHOD__);
 		$video = new Video(null);
 		Response::json($video->add($_FILES, $_POST['albumID']), JSON_NUMERIC_CHECK);
         
