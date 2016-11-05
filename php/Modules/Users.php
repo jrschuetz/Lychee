@@ -20,48 +20,54 @@ final class Users {
       return json_encode($data);
   }
   public function addUser($username, $password, $role){
-
-      # Check if user already exists
-      $query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
-      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-      if($result->num_rows > 0){
-          Log::warning(Database::get(), __METHOD__, __LINE__, "User: ". $username . " already exists");
-          exit("User already exists");
-      }
-      
-      # Hash password
-      $pwhash = password_hash($password, PASSWORD_BCRYPT);
-
-      # Insert in database
-      # Do not prepare pwhash, since the escaping would
-      # destroy it
-      $query = Database::prepare(Database::get(), "INSERT INTO ? (name, pwhash, role) VALUES ('?', '". $pwhash ."', '?')", array(LYCHEE_TABLE_USERS, $username, $role));
-      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-      if(!$result){
-          Log::error(Database::get(), __METHOD__, __LINE__, "Failed to create user: " . $database->error);
+      if ($_SESSION['role'] === 'admin') {
+          # Check if user already exists
+          $query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
+          $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+          if($result->num_rows > 0){
+              Log::warning(Database::get(), __METHOD__, __LINE__, "User: ". $username . " already exists");
+              exit("User already exists");
+          }
+          
+          # Hash password
+          $pwhash = password_hash($password, PASSWORD_BCRYPT);
+          
+          # Insert in database
+          # Do not prepare pwhash, since the escaping would
+          # destroy it
+          $query = Database::prepare(Database::get(), "INSERT INTO ? (name, pwhash, role) VALUES ('?', '". $pwhash ."', '?')", array(LYCHEE_TABLE_USERS, $username, $role));
+          $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+          if(!$result){
+              Log::error(Database::get(), __METHOD__, __LINE__, "Failed to create user: " . $database->error);
+              return false;
+          }
+          return true;
+      } else {
           return false;
       }
-      return true;
   }
   
   public function deleteUser($username){
-
-      # Check if user exists
-      $query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
-      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-      if($result->num_rows === 0){
-          Log::warning(Database::get(), __METHOD__, __LINE__, "User: ". $username . " does not exists");
-          exit("User does not exists");
-      }
-
-      # Delete from database
-      $query = Database::prepare(Database::get(), "DELETE FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
-      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-      if(!$result){
-          Log::error(Database::get(), __METHOD__, __LINE__, "Failed to delete user: " . $database->error);
+      if ($_SESSION['role'] === 'admin') {
+          # Check if user exists
+          $query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
+          $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+          if($result->num_rows === 0){
+              Log::warning(Database::get(), __METHOD__, __LINE__, "User: ". $username . " does not exists");
+              exit("User does not exists");
+          }
+          
+          # Delete from database
+          $query = Database::prepare(Database::get(), "DELETE FROM ? WHERE name = '?'", array(LYCHEE_TABLE_USERS, $username));
+          $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+          if(!$result){
+              Log::error(Database::get(), __METHOD__, __LINE__, "Failed to delete user: " . $database->error);
+              return false;
+          }
+          return true;
+      } else {
           return false;
       }
-      return true; 
   }
 
   public function checkLogin($username, $password){
@@ -116,48 +122,53 @@ final class Users {
   }
 
   public function getPrivileges($userid){
-
-      $query = Database::prepare(Database::get(), "SELECT a.id, a.title, p.view, p.upload, p.erase FROM ? a LEFT JOIN ? p ON a.id = p.album_id AND p.user_id = ?", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $userid));
-
-      Log::error(Database::get(), __METHOD__, __LINE__, "test" . $query);
-
-      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-      if(!$result){
-          Log::error(Database::get(), __METHOD__, __LINE__, "Failed to get privileges");
+      if ($_SESSION['role'] === 'admin') {
+          $query = Database::prepare(Database::get(), "SELECT a.id, a.title, p.view, p.upload, p.erase FROM ? a LEFT JOIN ? p ON a.id = p.album_id AND p.user_id = ?", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $userid));
+          
+          Log::error(Database::get(), __METHOD__, __LINE__, "test" . $query);
+          
+          $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+          if(!$result){
+              Log::error(Database::get(), __METHOD__, __LINE__, "Failed to get privileges");
+              return false;
+          }
+          
+          $data = array();
+          while($row = $result->fetch_assoc()){
+            $data[] = $row;
+          }
+          
+          return $data;
+      } else {
           return false;
       }
-
-      $data = array();
-      while($row = $result->fetch_assoc()){
-        $data[] = $row;
-      }
-
-      return $data;
-  
   }
 
+  // TODO: allow users with 'user' role to change permissions of shared albums
   public function changePrivileges($userid, $albumid, $privilege , $state){
-
-      # This cleans read an write input
-      $field = 0;
-      switch($privilege){
-        case '0': $field = 'view'; break;
-        case '1': $field = 'upload'; break;
-        case '2': $field = 'erase'; break;
-      }
-      $state = $state ? 1 : 0;
-
-      $query = Database::prepare(Database::get(), "INSERT INTO ? (`user_id`, `album_id`, `?`) VALUES ('?', '?','?') ON DUPLICATE KEY UPDATE `?`='?';", array(LYCHEE_TABLE_PRIVILEGES, $field, $userid, $albumid, $state, $field, $state));
-
-      Log::error(Database::get(), __METHOD__, __LINE__, "test" . $query);
-
-      $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-      if(!$result){
-          Log::error(Database::get(), __METHOD__, __LINE__, "Failed to insert privilege");
+      if ($_SESSION['role'] === 'admin') {
+          # This cleans read an write input
+          $field = 0;
+          switch($privilege){
+            case '0': $field = 'view'; break;
+            case '1': $field = 'upload'; break;
+            case '2': $field = 'erase'; break;
+          }
+          $state = $state ? 1 : 0;
+          
+          $query = Database::prepare(Database::get(), "INSERT INTO ? (`user_id`, `album_id`, `?`) VALUES ('?', '?','?') ON DUPLICATE KEY UPDATE `?`='?';", array(LYCHEE_TABLE_PRIVILEGES, $field, $userid, $albumid, $state, $field, $state));
+          
+          Log::error(Database::get(), __METHOD__, __LINE__, "test" . $query);
+          
+          $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+          if(!$result){
+              Log::error(Database::get(), __METHOD__, __LINE__, "Failed to insert privilege");
+              return false;
+          }
+          return true;
+      } else {
           return false;
       }
-      return true;
-  
   }
 
 }
