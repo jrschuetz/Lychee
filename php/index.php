@@ -14,6 +14,7 @@ use Lychee\Modules\Validator;
 
 use Lychee\Access\Installation;
 use Lychee\Access\Admin;
+use Lychee\Access\User;
 use Lychee\Access\Guest;
 
 require(__DIR__ . '/define.php');
@@ -59,9 +60,9 @@ if (!empty($fn)) {
 
 	}
 
-	// Check if user is logged
+	// Check if user is logged in and role
 	if ((isset($_SESSION['login'])&&$_SESSION['login']===true)&&
-		(isset($_SESSION['identifier'])&&$_SESSION['identifier']===Settings::get()['identifier'])) {
+		(isset($_SESSION['identifier'])&&$_SESSION['identifier']===Settings::get()['identifier']) && isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
 
 		/**
 		 * Admin Access
@@ -71,7 +72,19 @@ if (!empty($fn)) {
 		Admin::init($fn);
 		exit();
 
-	} else {
+	} elseif ((isset($_SESSION['login'])&&$_SESSION['login']===true)&&
+		(isset($_SESSION['identifier'])&&$_SESSION['identifier']===Settings::get()['identifier']) && isset($_SESSION['role']) && $_SESSION['role'] == 'user') {
+
+		/**
+		 * User Access
+		 * Restricted access to Lychee. Only with correct password/session.
+		 */
+
+		User::init($fn);
+		exit();
+
+	}
+    else {
 
 		/**
 		 * Guest Access
