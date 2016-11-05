@@ -34,12 +34,14 @@ final class Albums {
 		// Albums query
 		if ($public===false) {
             if ($_SESSION['role'] === 'admin') {
-                $query = Database::prepare(Database::get(), 'SELECT id, title, public, sysstamp, password FROM ? ' . Settings::get()['sortingAlbums'], array(LYCHEE_TABLE_ALBUMS));
-            } else { // ALSO INCLUDE SHARED
-                $query = Database::prepare(Database::get(), 'SELECT id, title, public, sysstamp, password FROM ? WHERE user_id = ? ' . Settings::get()['sortingAlbums'], array(LYCHEE_TABLE_ALBUMS,  $_SESSION['userid']));
+                $query = Database::prepare(Database::get(), "SELECT id, title, public, sysstamp, password FROM ? " . Settings::get()['sortingAlbums'], array(LYCHEE_TABLE_ALBUMS));
+            } else {
+                $query = Database::prepare(Database::get(), "SELECT id, title, public, sysstamp, password FROM ? WHERE user_id = ? UNION SELECT a.id, a.title, a.public, a.sysstamp, a.password FROM ? a JOIN ? p on ( a.id = p.album_id) WHERE p.user_id = ? AND p.view = 1 " . Settings::get()['sortingAlbums'], array(LYCHEE_TABLE_ALBUMS,  $_SESSION['userid'], LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $_SESSION['userid']));
             }
         }
-		else                 $query = Database::prepare(Database::get(), 'SELECT id, title, public, sysstamp, password FROM ? WHERE public = 1 AND visible <> 0 ' . Settings::get()['sortingAlbums'], array(LYCHEE_TABLE_ALBUMS));
+		else {
+            $query = Database::prepare(Database::get(), 'SELECT id, title, public, sysstamp, password FROM ? WHERE public = 1 AND visible <> 0 ' . Settings::get()['sortingAlbums'], array(LYCHEE_TABLE_ALBUMS));
+        }
 
 		// Execute query
 		$albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);

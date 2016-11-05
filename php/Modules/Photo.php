@@ -721,15 +721,15 @@ final class Photo {
             $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
             if ($photos->num_rows === 0) { // Not a photo created by the user, check if photo is in an album shared with the user
-                $query = Database::prepare(Database::get(), "SELECT * FROM ? pic JOIN ? p ON p.album_id=pic.album WHERE pic.album=? AND p.view=1 AND pic.id=? AND p.user_id=? LIMIT 1", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PRIVILEGES, $albumID, $this->photoIDs, $_SESSION['userid']));
-                $albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+                $query = Database::prepare(Database::get(), "SELECT pic.* FROM ? pic JOIN ? p ON p.album_id=pic.album WHERE pic.album=? AND p.view=1 AND pic.id=? AND p.user_id=? LIMIT 1", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PRIVILEGES, $albumID, $this->photoIDs, $_SESSION['userid']));
+                $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
             }
         } else { // Admin sees all pictures // TODO: provide setting to restrict view to own photos only
         	// Get photo
         	$query  = Database::prepare(Database::get(), "SELECT * FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS, $this->photoIDs));
             $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 		}
-    
+
 		if ($photos===false) return false;
 
 		// Get photo object
