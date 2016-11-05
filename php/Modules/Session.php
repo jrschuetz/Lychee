@@ -146,13 +146,13 @@ final class Session {
 
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
-
 		session_unset();
-
+        
 		$query = Database::prepare(Database::get(), "DELETE FROM ? WHERE value = '?'", array(LYCHEE_TABLE_SESSIONS, $_COOKIE['SESSION']));
 		Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-		Log::info(Database::get(), __METHOD__, __LINE__, "Logged out session " . $test);
-
+        
+        Log::notice(Database::get(), __METHOD__, __LINE__, "Logged out session " . $_COOKIE['SESSION']);
+        
 		session_destroy();
 
 		// Call plugins
