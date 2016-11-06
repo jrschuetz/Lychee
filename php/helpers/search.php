@@ -20,9 +20,13 @@ function search($term) {
 	/**
 	 * Photos
 	 */
-
-	$query  = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE title LIKE '%?%' OR description LIKE '%?%' OR tags LIKE '%?%'", array(LYCHEE_TABLE_PHOTOS, $term, $term, $term));
-	$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+     
+    if($_SESSION['role'] == 'admin' ) { // Can search through all photos
+        $query  = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ? WHERE title LIKE '%?%' OR description LIKE '%?%' OR tags LIKE '%?%'", array(LYCHEE_TABLE_PHOTOS, $term, $term, $term));
+	} else { // Limited to own, shared and public photos
+        $query  = Database::prepare(Database::get(), "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium FROM ((SELECT * FROM ? WHERE (user_id=? OR public=1)) UNION (SELECT pic.* FROM ? pic JOIN ? p ON p.album_id=pic.album WHERE p.view=1 AND p.user_id=?)) union_table WHERE title LIKE '%?%' OR description LIKE '%?%' OR tags LIKE '%?%'", array(LYCHEE_TABLE_PHOTOS, $_SESSION['userid'], LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PRIVILEGES, $_SESSION['userid'], $term, $term, $term));
+    }
+    $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 	if ($result===false) return false;
 
@@ -36,9 +40,13 @@ function search($term) {
 	/**
 	 * Albums
 	 */
-
-	$query  = Database::prepare(Database::get(), "SELECT id, title, public, sysstamp, password FROM ? WHERE title LIKE '%?%' OR description LIKE '%?%'", array(LYCHEE_TABLE_ALBUMS, $term, $term));
-	$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+    
+    if($_SESSION['role'] == 'admin' ) { // Can search through all albums
+        $query  = Database::prepare(Database::get(), "SELECT id, title, public, sysstamp, password FROM ? WHERE title LIKE '%?%' OR description LIKE '%?%'", array(LYCHEE_TABLE_ALBUMS, $term, $term));
+    } else { // Limited to own, shared and public albums
+        $query  = Database::prepare(Database::get(), "SELECT alb.id, alb.title, alb.public, alb.sysstamp, alb.password FROM ? alb LEFT JOIN ? priv ON alb.id=priv.album_id WHERE (title LIKE '%?%' OR description LIKE '%?%') AND (alb.user_id=? OR priv.user_id=? OR alb.public=1)", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $term, $term, $_SESSION['userid'], $_SESSION['userid']));
+	}
+    $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 	if ($result===false) return false;
 
