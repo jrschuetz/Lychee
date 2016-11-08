@@ -668,7 +668,10 @@ final class Photo {
 		$photo['tags']   = $data['tags'];
 		$photo['public'] = $data['public'];
 		$photo['star']   = $data['star'];
-		$photo['album']  = $data['album'];
+        
+        // Parse album
+        if ($data['album'] == null) $photo['album']  = 'u'; # Unsorted SmartAlbum id
+        else                        $photo['album']  = $data['album'];
 
 		// Parse medium
 		if ($data['medium']==='1') $photo['medium'] = LYCHEE_URL_UPLOADS_MEDIUM . $data['url'];
