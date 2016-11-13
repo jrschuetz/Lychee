@@ -3,7 +3,7 @@
 
 INSERT INTO `?` (`key`, `value`)
 VALUES
-  ('version',''),
+  ('version','3.1.5'),
   ('checkForUpdates','1'),
   ('sortingPhotos','ORDER BY id DESC'),
   ('sortingAlbums','ORDER BY id DESC'),

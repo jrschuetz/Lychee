@@ -7,5 +7,3 @@ CREATE TABLE IF NOT EXISTS `?` (
       PRIMARY KEY (`user_id`,`album_id`),
       KEY `album_id` (`album_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-

@@ -5,7 +5,6 @@ final class Database {
 	private $connection = null;
 	private static $instance = null;
 	private static $versions = array(
-		'020700', // 2.7.0
 		'030000', // 3.0.0
 		'030001', // 3.0.1
 		'030003', // 3.0.3
@@ -238,6 +237,49 @@ final class Database {
 			$result = self::execute($connection, $query, __METHOD__, __LINE__);
 			if ($result===false) return false;
 		}
+        // Check if photos_users table exists
+		$exist  = self::prepare($connection, 'SELECT * FROM ? LIMIT 0', array(LYCHEE_TABLE_PHOTOS_USERS));
+		$result = self::execute($connection, $exist, __METHOD__, __LINE__);
+		if ($result===false) {
+			// Read file
+			$file  = __DIR__ . '/../database/photos_users_table.sql';
+			$query = @file_get_contents($file);
+			if ($query===false) {
+				Log::error($connection, __METHOD__, __LINE__, 'Could not load query for lychee_photos_users');
+				return false;
+			}
+			// Create table
+			$query  = self::prepare($connection, $query, array(LYCHEE_TABLE_PHOTOS_USERS));
+			$result = self::execute($connection, $query, __METHOD__, __LINE__);
+			if ($result===false) return false;
+		}
+        
+        // Add the privileges table connections
+        $file  = __DIR__ . '/../database/privileges_table_connect.sql';
+
+        $query = @file_get_contents($file);
+        if ($query===false) {
+        	Log::error($connection, __METHOD__, __LINE__, 'Could not load query for lychee_privileges_table_connect');
+			return false;
+        }
+        // Create connections
+        $query  = self::prepare($connection, $query, array(LYCHEE_TABLE_PRIVILEGES, LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_USERS));
+        $result = self::execute($connection, $query, __METHOD__, __LINE__);
+
+        if ($result===false) return false;
+
+        // Add the photos_users table connections
+        $file  = __DIR__ . '/../database/photos_users_table_connect.sql';
+        $query = @file_get_contents($file);
+        if ($query===false) {
+        	Log::error($connection, __METHOD__, __LINE__, 'Could not load query for lychee_photos_users_table_connect');
+			return false;
+        }
+        // Create connections
+        $query  = self::prepare($connection, $query, array(LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_USERS));
+        $result = self::execute($connection, $query, __METHOD__, __LINE__);
+        if ($result===false) return false;
+        
 		return true;
 	}
 	/**
@@ -321,6 +363,7 @@ final class Database {
 			// Decrease number of data elements
 			$num['data']--;
 		}
+
 		return $query;
 	}
 	/**

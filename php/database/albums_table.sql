@@ -12,4 +12,4 @@ CREATE TABLE IF NOT EXISTS `?` (
   `downloadable` tinyint(1) NOT NULL DEFAULT '0',
   `password` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
