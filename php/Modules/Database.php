@@ -205,6 +205,7 @@ final class Database {
 			$result = self::execute($connection, $query, __METHOD__, __LINE__);
 			if ($result===false) return false;
 		}
+
         // Check if users table exists
 		$exist  = self::prepare($connection, 'SELECT * FROM ? LIMIT 0', array(LYCHEE_TABLE_USERS));
 		$result = self::execute($connection, $exist, __METHOD__, __LINE__);
@@ -221,6 +222,7 @@ final class Database {
 			$result = self::execute($connection, $query, __METHOD__, __LINE__);
 			if ($result===false) return false;
 		}
+
         // Check if privileges table exists
 		$exist  = self::prepare($connection, 'SELECT * FROM ? LIMIT 0', array(LYCHEE_TABLE_PRIVILEGES));
 		$result = self::execute($connection, $exist, __METHOD__, __LINE__);
@@ -237,6 +239,20 @@ final class Database {
 			$result = self::execute($connection, $query, __METHOD__, __LINE__);
 			if ($result===false) return false;
 		}
+
+        // Add the privileges table connections
+        $file  = __DIR__ . '/../database/privileges_table_connect.sql';
+
+        $query = @file_get_contents($file);
+        if ($query===false) {
+        	Log::error($connection, __METHOD__, __LINE__, 'Could not load query for lychee_privileges_table_connect');
+			return false;
+        }
+        // Create connections
+        $query  = self::prepare($connection, $query, array(LYCHEE_TABLE_PRIVILEGES, LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_USERS));
+        $result = self::execute($connection, $query, __METHOD__, __LINE__);
+        if ($result===false) return false;
+
         // Check if photos_users table exists
 		$exist  = self::prepare($connection, 'SELECT * FROM ? LIMIT 0', array(LYCHEE_TABLE_PHOTOS_USERS));
 		$result = self::execute($connection, $exist, __METHOD__, __LINE__);
@@ -254,20 +270,6 @@ final class Database {
 			if ($result===false) return false;
 		}
         
-        // Add the privileges table connections
-        $file  = __DIR__ . '/../database/privileges_table_connect.sql';
-
-        $query = @file_get_contents($file);
-        if ($query===false) {
-        	Log::error($connection, __METHOD__, __LINE__, 'Could not load query for lychee_privileges_table_connect');
-			return false;
-        }
-        // Create connections
-        $query  = self::prepare($connection, $query, array(LYCHEE_TABLE_PRIVILEGES, LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_USERS));
-        $result = self::execute($connection, $query, __METHOD__, __LINE__);
-
-        if ($result===false) return false;
-
         // Add the photos_users table connections
         $file  = __DIR__ . '/../database/photos_users_table_connect.sql';
         $query = @file_get_contents($file);
@@ -279,7 +281,36 @@ final class Database {
         $query  = self::prepare($connection, $query, array(LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_USERS));
         $result = self::execute($connection, $query, __METHOD__, __LINE__);
         if ($result===false) return false;
-        
+
+        // Check if photos_users table exists
+		$exist  = self::prepare($connection, 'SELECT * FROM ? LIMIT 0', array(LYCHEE_TABLE_PHOTOS_ALBUMS));
+		$result = self::execute($connection, $exist, __METHOD__, __LINE__);
+		if ($result===false) {
+			// Read file
+			$file  = __DIR__ . '/../database/photos_albums_table.sql';
+			$query = @file_get_contents($file);
+			if ($query===false) {
+				Log::error($connection, __METHOD__, __LINE__, 'Could not load query for lychee_photos_albums');
+				return false;
+			}
+			// Create table
+			$query  = self::prepare($connection, $query, array(LYCHEE_TABLE_PHOTOS_ALBUMS));
+			$result = self::execute($connection, $query, __METHOD__, __LINE__);
+			if ($result===false) return false;
+		}
+
+        // Add the photos_albums table connections
+        $file  = __DIR__ . '/../database/photos_albums_table_connect.sql';
+        $query = @file_get_contents($file);
+        if ($query===false) {
+        	Log::error($connection, __METHOD__, __LINE__, 'Could not load query for lychee_photos_albums_table_connect');
+			return false;
+        }
+        // Create connections
+        $query  = self::prepare($connection, $query, array(LYCHEE_TABLE_PHOTOS_ALBUMS, LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_ALBUMS));
+        $result = self::execute($connection, $query, __METHOD__, __LINE__);
+        if ($result===false) return false;
+
 		return true;
 	}
 	/**
@@ -332,7 +363,8 @@ final class Database {
 			'data'        => count($data)
 		);
 		if (($num['data']-$num['placeholder'])<0) Log::notice($connection, __METHOD__, __LINE__, 'Could not completely prepare query. Query has more placeholders than values.');
-		foreach ($data as $value) {
+
+		foreach ($data as $value)  {
 			// Escape
 			$value = mysqli_real_escape_string($connection, $value);
 			// Recalculate number of placeholders

@@ -257,14 +257,37 @@ final class Photo {
 
 		}
 
-		$values = array(LYCHEE_TABLE_PHOTOS, $id, $info['title'], $photo_name, $info['description'], $_SESSION['userid'], $info['tags'], $info['type'], $info['width'], $info['height'], $info['size'], $info['iso'], $info['aperture'], $info['make'], $info['model'], $info['shutter'], $info['focal'], $info['takestamp'], $path_thumb, $albumID, $public, $star, $checksum, $medium);
-		$query  = Database::prepare(Database::get(), "INSERT INTO ? (id, title, url, description, user_id, tags, type, width, height, size, iso, aperture, make, model, shutter, focal, takestamp, thumbUrl, album, public, star, checksum, medium) VALUES ('?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', ?, '?', '?', '?', '?')", $values);
+        // Insert photo // TODO: use image hash to check if it already exists
+		$values = array(LYCHEE_TABLE_PHOTOS, $id, $photo_name, $info['type'], $info['width'], $info['height'], $info['size'], $info['iso'], $info['aperture'], $info['make'], $info['model'], $info['shutter'], $info['focal'], $info['takestamp'], $path_thumb, $checksum, $medium);
+        $query  = Database::prepare(Database::get(), "INSERT INTO ? (id, url, type, width, height, size, iso, aperture, make, model, shutter, focal, takestamp, thumbUrl, checksum, medium) VALUES ('?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?')", $values);
+		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
+        if ($result===false) {
+			if ($returnOnError===true) return false;
+			Response::error('Could not save photo in database!');
+		}
+
+        // Insert photo foreign key to photos_users
+        $values = array(LYCHEE_TABLE_PHOTOS_USERS, $_SESSION['userid'], $id, $info['title'], $info['description'], $info['tags'], $public, $star);
+        $query  = Database::prepare(Database::get(), "INSERT INTO ? (user_id, photo_id, title, description, tags, public, star) VALUES ('?', '?', '?', '?', '?', '?', '?')", $values);
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		if ($result===false) {
 			if ($returnOnError===true) return false;
-			Response::error('Could not save photo in database!');
+			Response::error('Could not save photo_user connection in database!');
 		}
+
+        // Insert photo foreign key to photos_albums (if album is set)
+        if ($albumID === NULL) {
+            $values = array(LYCHEE_TABLE_PHOTOS_ALBUMS, $id, $albumID);
+            $query  = Database::prepare(Database::get(), "INSERT INTO ? (photo_id, album_id) VALUES ('?', '?')", $values);
+            $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
+            if ($result===false) {
+                if ($returnOnError===true) return false;
+                Response::error('Could not save photo_abum connection in database!');
+            }
+        }
 
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
@@ -657,7 +680,7 @@ final class Photo {
 	public static function prepareData(array $data) {
 
 		// Excepts the following:
-		// (array) $data = ['id', 'title', 'tags', 'public', 'star', 'album', 'thumbUrl', 'takestamp', 'url', 'medium']
+		// (array) $data = ['id', 'title', 'tags', 'public', 'star', 'album_id', 'thumbUrl', 'takestamp', 'url', 'medium']
 
 		// Init
 		$photo = null;
@@ -670,8 +693,8 @@ final class Photo {
 		$photo['star']   = $data['star'];
         
         // Parse album
-        if ($data['album'] == null) $photo['album']  = 'u'; # Unsorted SmartAlbum id
-        else                        $photo['album']  = $data['album'];
+        if ($data['album_id'] == null) $photo['album']  = 'u'; # Unsorted SmartAlbum id
+        else                        $photo['album']  = $data['album_id'];
 
 		// Parse medium
 		if ($data['medium']==='1') $photo['medium'] = LYCHEE_URL_UPLOADS_MEDIUM . $data['url'];
@@ -717,7 +740,12 @@ final class Photo {
 		// First check if the user has rights to view photo
 		$query = '';
 		if ($_SESSION['role'] == 'user' && in_array( $albumID,  array('s', 'f', 'r', 'u'))) { // Load photo that is in a smart album
-            $query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE user_id=? AND id = '?'", array(LYCHEE_TABLE_PHOTOS, $_SESSION['userid'], $this->photoIDs));
+            $query = Database::prepare(Database::get(), "
+                SELECT * FROM ? p
+                    LEFT JOIN ? p_u
+                        ON p.id = p_u.photo_id
+                WHERE p_u.user_id = ? AND p.id = '?'
+                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTO_USERS, $_SESSION['userid'], $this->photoIDs));
             $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
         } elseif ($_SESSION['role'] == 'user' && $albumID != 'false') { // TODO: check 'false' case
             $query	= Database::prepare(Database::get(), "SELECT pic.* FROM ? pic JOIN ? alb ON pic.album=alb.id WHERE alb.id = '?' AND pic.id = '?' AND alb.user_id = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_ALBUMS, $albumID, $this->photoIDs, $_SESSION['userid']));
@@ -1226,7 +1254,7 @@ final class Photo {
 		$tags = preg_replace('/,$|^,|(\ ){0,}$/', '', $tags);
 
 		// Set tags
-		$query  = Database::prepare(Database::get(), "UPDATE ? SET tags = '?' WHERE id IN (?)", array(LYCHEE_TABLE_PHOTOS, $tags, $this->photoIDs));
+		$query  = Database::prepare(Database::get(), "UPDATE ? SET tags = '?' WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $tags, $this->photoIDs, $_SESSION['userid']));
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		// Call plugins
