@@ -745,19 +745,32 @@ final class Photo {
                     LEFT JOIN ? p_u
                         ON p.id = p_u.photo_id
                 WHERE p_u.user_id = ? AND p.id = '?'
-                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTO_USERS, $_SESSION['userid'], $this->photoIDs));
+                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $_SESSION['userid'], $this->photoIDs));
             $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-        } elseif ($_SESSION['role'] == 'user' && $albumID != 'false') { // TODO: check 'false' case
-            $query	= Database::prepare(Database::get(), "SELECT pic.* FROM ? pic JOIN ? alb ON pic.album=alb.id WHERE alb.id = '?' AND pic.id = '?' AND alb.user_id = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_ALBUMS, $albumID, $this->photoIDs, $_SESSION['userid']));
+        } elseif ($_SESSION['role'] == 'user' && $albumID != 'false') { // TODO: ADJUST TO NEW DATABASE STRUCTURE
+            $query	= Database::prepare(Database::get(), "
+                SELECT p.* FROM ? p
+                    JOIN ? a ON p.album=a.id
+                WHERE a.id = '?' AND p.id = '?' AND a.user_id = '?' LIMIT 1
+                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_ALBUMS, $albumID, $this->photoIDs, $_SESSION['userid']));
             $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
             if ($photos->num_rows === 0) { // Not a photo created by the user, check if photo is in an album shared with the user
-                $query = Database::prepare(Database::get(), "SELECT pic.* FROM ? pic JOIN ? p ON p.album_id=pic.album WHERE pic.album=? AND p.view=1 AND pic.id=? AND p.user_id=? LIMIT 1", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PRIVILEGES, $albumID, $this->photoIDs, $_SESSION['userid']));
+                $query = Database::prepare(Database::get(), "
+                    SELECT p.* FROM ? p
+                        JOIN ? pr ON pr.album_id=p.album
+                    WHERE p.album=? AND pr.view=1 AND p.id=? AND pr.user_id=? LIMIT 1
+                    ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PRIVILEGES, $albumID, $this->photoIDs, $_SESSION['userid']));
                 $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
             }
         } else { // Admin sees all pictures // TODO: provide setting to restrict view to own photos only
         	// Get photo
-        	$query  = Database::prepare(Database::get(), "SELECT * FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS, $this->photoIDs));
+        	$query  = Database::prepare(Database::get(), "
+                SELECT * FROM ? p
+                    LEFT JOIN ? p_u
+                        ON p.id = p_u.photo_id
+                WHERE p.id = '?' LIMIT 1
+                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs));
             $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 		}
 
@@ -816,6 +829,7 @@ final class Photo {
 
 			$photo['original_album'] = $photo['album'];
 			$photo['album']          = $albumID;
+
 
 		}
 
