@@ -1263,12 +1263,26 @@ final class Photo {
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
+		// Check rights to set tags on photo
+		if ($_SESSION['role'] == 'user') {
+			$query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
+			$result   = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+			if ($result->num_rows == 0){
+				Log::error(Database::get(), __METHOD__, __LINE__, "User: ". $_SESSION['userid']. " tried to set tags for photo: ". $this->photoIDs );
+				return false;
+			}
+		}
+
 		// Parse tags
 		$tags = preg_replace('/(\ ,\ )|(\ ,)|(,\ )|(,{1,}\ {0,})|(,$|^,)/', ',', $tags);
 		$tags = preg_replace('/,$|^,|(\ ){0,}$/', '', $tags);
 
 		// Set tags
-		$query  = Database::prepare(Database::get(), "UPDATE ? SET tags = '?' WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $tags, $this->photoIDs, $_SESSION['userid']));
+        if ($_SESSION['role'] == 'user') {
+            $query  = Database::prepare(Database::get(), "UPDATE ? SET tags = '?' WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $tags, $this->photoIDs, $_SESSION['userid']));
+        } else { // Admin can set tags for all photos
+            $query  = Database::prepare(Database::get(), "UPDATE ? SET tags = '?' WHERE photo_id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $tags, $this->photoIDs, $_SESSION['userid']));
+        }
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		// Call plugins
