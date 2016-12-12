@@ -1045,8 +1045,22 @@ final class Photo {
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
+        // Check rights to set title on photo
+		if ($_SESSION['role'] == 'user') {
+			$query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
+			$result   = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+			if ($result->num_rows == 0){
+				Log::error(Database::get(), __METHOD__, __LINE__, "User: ". $_SESSION['userid']. " tried to set title for photo: ". $this->photoIDs );
+				return false;
+			}
+		}
+
 		// Set title
-		$query  = Database::prepare(Database::get(), "UPDATE ? SET title = '?' WHERE id IN (?)", array(LYCHEE_TABLE_PHOTOS, $title, $this->photoIDs));
+        if ($_SESSION['role'] == 'user') {
+            $query  = Database::prepare(Database::get(), "UPDATE ? SET title = '?' WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $title, $this->photoIDs, $_SESSION['userid']));
+        } else { // Admin can set tags for all photos
+            $query  = Database::prepare(Database::get(), "UPDATE ? SET title = '?' WHERE photo_id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $title, $this->photoIDs));
+        }
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		// Call plugins
@@ -1069,8 +1083,21 @@ final class Photo {
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
+		if ($_SESSION['role'] == 'user') {
+			$query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
+			$result   = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+			if ($result->num_rows == 0){
+				Log::error(Database::get(), __METHOD__, __LINE__, "User: ". $_SESSION['userid']. " tried to set description for photo: ". $this->photoIDs );
+				return false;
+			}
+		}
+
 		// Set description
-		$query  = Database::prepare(Database::get(), "UPDATE ? SET description = '?' WHERE id IN ('?')", array(LYCHEE_TABLE_PHOTOS, $description, $this->photoIDs));
+        if ($_SESSION['role'] == 'user') {
+            $query  = Database::prepare(Database::get(), "UPDATE ? SET description = '?' WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $description, $this->photoIDs, $_SESSION['userid']));
+        } else { // Admin can set tags for all photos
+            $query  = Database::prepare(Database::get(), "UPDATE ? SET description = '?' WHERE photo_id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $description, $this->photoIDs, $_SESSION['userid']));
+        }
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		// Call plugins
@@ -1093,11 +1120,20 @@ final class Photo {
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
+		if ($_SESSION['role'] == 'user') {
+			$query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
+			$result   = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+			if ($result->num_rows == 0){
+				Log::error(Database::get(), __METHOD__, __LINE__, "User: ". $_SESSION['userid']. " tried to set star for photo: ". $this->photoIDs );
+				return false;
+			}
+		}
+
 		// Init vars
 		$error = false;
 
 		// Get photos
-		$query  = Database::prepare(Database::get(), "SELECT id, star FROM ? WHERE id IN (?)", array(LYCHEE_TABLE_PHOTOS, $this->photoIDs));
+        $query  = Database::prepare(Database::get(), "SELECT photo_id, star FROM ? WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		if ($photos===false) return false;
@@ -1109,7 +1145,7 @@ final class Photo {
 			$star = ($photo->star==0 ? 1 : 0);
 
 			// Set star
-			$query  = Database::prepare(Database::get(), "UPDATE ? SET star = '?' WHERE id = '?'", array(LYCHEE_TABLE_PHOTOS, $star, $photo->id));
+			$query  = Database::prepare(Database::get(), "UPDATE ? SET star = '?' WHERE photo_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $star, $photo->id));
 			$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 			if ($result===false) $error = true;
@@ -1281,7 +1317,7 @@ final class Photo {
         if ($_SESSION['role'] == 'user') {
             $query  = Database::prepare(Database::get(), "UPDATE ? SET tags = '?' WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $tags, $this->photoIDs, $_SESSION['userid']));
         } else { // Admin can set tags for all photos
-            $query  = Database::prepare(Database::get(), "UPDATE ? SET tags = '?' WHERE photo_id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $tags, $this->photoIDs, $_SESSION['userid']));
+            $query  = Database::prepare(Database::get(), "UPDATE ? SET tags = '?' WHERE photo_id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $tags, $this->photoIDs));
         }
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
