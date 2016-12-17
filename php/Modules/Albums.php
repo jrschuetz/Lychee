@@ -55,11 +55,17 @@ final class Albums {
 			$album = Album::prepareData($album);
 
 			// Thumbs
-			if (($public===true&&$album['password']==='0')||
+			if (($public===true && $album['password']==='0')||
 				($public===false)) {
 
 					// Execute query
-					$query  = Database::prepare(Database::get(), "SELECT thumbUrl FROM ? WHERE album = '?' ORDER BY star DESC, " . substr(Settings::get()['sortingPhotos'], 9) . " LIMIT 3", array(LYCHEE_TABLE_PHOTOS, $album['id']));
+					$query  = Database::prepare(Database::get(), "
+                        SELECT thumbUrl FROM ? p
+                            JOIN ? p_u
+                                ON p.id = p_u.photo_id
+                            JOIN ? p_a
+                                ON p.id = p_a.photo_id
+                            WHERE p_a.album_id = '?' ORDER BY p_u.star DESC, " . substr(Settings::get()['sortingPhotos'], 9) . " LIMIT 3", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $album['id']));
 					$thumbs = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 					if ($thumbs===false) return false;
