@@ -415,6 +415,41 @@ final class Database {
 		}
 		return $result;
 	}
+    /**
+	 * @return object|false Returns the results on success.
+	 */
+	public static function executeTransaction($connection, $queries, $function, $line) {
+		// Check dependencies
+		Validator::required(isset($connection, $queries), __METHOD__);
+		// Only activate logging when $function and $line is set
+		$logging = ($function===null||$line===null ? false : true);
+
+        try {
+            // Start transaction
+            $connection->begin_transaction();
+
+            forEach($queries as $query) {
+        		// Execute query
+        		$result = $connection->query($query);
+
+		        // Check if execution failed
+		        if ($result===false) {
+                    // Undo changes
+                    $connection->rollback();
+		        	if ($logging===true) Log::error($connection, $function, $line, $connection->error);
+                    return false;
+		        }
+            }
+
+            // End transaction and commit changes
+            $connection->commit();
+        } catch (Exception $e) {
+            // Undo changes
+            $connection->rollback();
+            return false;
+        }
+		return $result;
+	}
 	static function createConfig($host = 'localhost', $user, $password, $name = 'lychee', $prefix = '') {
 
 		# Check dependencies

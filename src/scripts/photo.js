@@ -25,7 +25,7 @@ photo.getAlbumId = function() {
 
     var id = null;
 
-    if (photo.json)	id = photo.json.albumid;
+    if (photo.json)	id = photo.json.album_id;
     else			id = $('.photo:hover, .photo.active').attr('data-album-id');
 
     if ($.isNumeric(id)===true)	return id;
@@ -357,7 +357,7 @@ photo.setTitle = function(photoIDs) {
 
 }
 
-photo.setAlbum = function(photoIDs, albumID) {
+photo.setAlbum = function(photoIDs, albumID, oldAlbumID) {
 
 	let nextPhoto = null
 	let previousPhoto = null
@@ -392,7 +392,8 @@ photo.setAlbum = function(photoIDs, albumID) {
 
 	let params = {
 		photoIDs: photoIDs.join(),
-		albumID
+		albumID,
+        oldAlbumID
 	}
 
 	api.post('Photo::setAlbum', params, function(data) {

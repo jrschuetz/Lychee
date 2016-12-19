@@ -1179,7 +1179,12 @@ final class Photo {
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
 		// Get photo
-		$query  = Database::prepare(Database::get(), "SELECT public, album FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS, $this->photoIDs));
+		$query  = Database::prepare(Database::get(), "
+            SELECT p_u.public, p_a.album
+                FROM ? p_u
+                LEFT JOIN ? p_a ON p_u.photo_id = p_a.photo_id
+            WHERE p_u.photo_id = '?' LIMIT 1
+        ", array(LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $this->photoIDs));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		if ($photos===false) return 0;
@@ -1268,7 +1273,8 @@ final class Photo {
 	 * Sets the parent album of a photo.
 	 * @return boolean Returns true when successful.
 	 */
-	function setAlbum($albumID) {
+	function setAlbum($albumID, $oldAlbumID) {
+        $result = false;
 
 		// Check dependencies
 		Validator::required(isset($this->photoIDs), __METHOD__);
@@ -1276,9 +1282,25 @@ final class Photo {
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
-		// Set album
-		$query  = Database::prepare(Database::get(), "INSERT INTO ? (photo_id, album_id) VALUES ('?', '?') ON DUPLICATE KEY UPDATE album_id='?'", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $albumID, $this->photoIDs, $albumID));
-		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+        // Set album
+//        $this->photoIDs.forEach(id) { // TODO: add support for array of photos
+
+        $queries = array();
+        
+        // Delete old album value
+        array_push($queries, Database::prepare(Database::get(), "DELETE FROM ? WHERE photo_id = '?' AND album_id = '?'", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $this->photoIDs, $oldAlbumID))); // Update when photo_id and OLD album_id already in database // TODO: fix
+                
+        // Insert new album value
+        array_push($queries, Database::prepare(Database::get(), "INSERT INTO ?  (photo_id, album_id) VALUES ('?', '?')", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $this->photoIDs, $albumID))); // Update when photo_id and OLD album_id already in database // TODO: fix
+        
+        // Run both queries in one transaction
+        $result = Database::executeTransaction(Database::get(), $queries, __METHOD__, __LINE__);
+
+        
+ //           if ($result===false) {
+ //               break
+ //           }
+ //       }
 
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());

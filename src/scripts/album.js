@@ -17,14 +17,14 @@ album.getID = function() {
 		return $.isNumeric(id)
 	}
 
-	if (photo.json)      id = photo.json.album
+	if (photo.json)      id = photo.json.album_id
 	else if (album.json) id = album.json.id
 
 	// Search
 	if (isID(id)===false) id = $('.album:hover, .album.active').attr('data-id')
 	if (isID(id)===false) id = $('.photo:hover, .photo.active').attr('data-album-id')
 
-	if (isID(id)===true) return id
+    if (isID(id)===true) return id
 	else                 return false
 
 }

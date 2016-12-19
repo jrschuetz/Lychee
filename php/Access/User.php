@@ -123,9 +123,9 @@ final class User extends Access {
 
 	private static function setPhotoAlbumAction() {
 
-		Validator::required(isset($_POST['photoIDs'], $_POST['albumID']), __METHOD__);
+		Validator::required(isset($_POST['photoIDs'], $_POST['albumID'], $_POST['oldAlbumID']), __METHOD__);
 		$photo = new Photo($_POST['photoIDs']);
-		Response::json($photo->setAlbum($_POST['albumID']));
+		Response::json($photo->setAlbum($_POST['albumID'], $_POST['oldAlbumID']));
 
 	}
 

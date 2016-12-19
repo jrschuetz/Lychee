@@ -311,8 +311,7 @@ contextMenu.move = function(photoIDs, e) {
 			]
 
 		} else {
-
-			// Generate list of albums
+			// Generate list of albums to move photo to
 			$.each(data.albums, function() {
 
 				if (!this.thumbs[0]) this.thumbs[0] = 'src/images/no_cover.svg'
@@ -322,16 +321,16 @@ contextMenu.move = function(photoIDs, e) {
 
 				if (this.id!=album.getID()) items.push({
 					title: html,
-					fn: () => photo.setAlbum(photoIDs, this.id)
+					fn: () => photo.setAlbum(photoIDs, this.id, album.getID())
 				})
 
 			})
 
-			// Show Unsorted when unsorted is not the current album
+			// Show Unsorted as an option when unsorted is not the current album
 			if (album.getID()!==null) {
 
 				items.unshift({ })
-				items.unshift({ title: 'Unsorted', fn: () => photo.setAlbum(photoIDs, 0) })
+				items.unshift({ title: 'Unsorted', fn: () => photo.setAlbum(photoIDs, 0, album.getID()) })
 
 			}
 
