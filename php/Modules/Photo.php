@@ -989,7 +989,12 @@ final class Photo {
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
 		// Get photo
-		$query  = Database::prepare(Database::get(), "SELECT title, url FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS, $this->photoIDs));
+		$query  = Database::prepare(Database::get(), "
+            SELECT p_u.title, p.url
+                FROM ? p
+                LEFT JOIN ? p_u ON p.id = p_u.photo_id
+            WHERE p.id = '?' LIMIT 1
+        ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		if ($photos===false) return false;
@@ -1240,7 +1245,7 @@ final class Photo {
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
 		// Get public
-		$query  = Database::prepare(Database::get(), "SELECT public FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS, $this->photoIDs));
+		$query  = Database::prepare(Database::get(), "SELECT public FROM ? WHERE photo_id = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		if ($photos===false) return false;
@@ -1258,7 +1263,7 @@ final class Photo {
 		$public = ($photo->public==0 ? 1 : 0);
 
 		// Set public
-		$query  = Database::prepare(Database::get(), "UPDATE ? SET public = '?' WHERE id = '?'", array(LYCHEE_TABLE_PHOTOS, $public, $this->photoIDs));
+		$query  = Database::prepare(Database::get(), "UPDATE ? SET public = '?' WHERE photo_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $public, $this->photoIDs));
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		// Call plugins
