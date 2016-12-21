@@ -1129,15 +1129,6 @@ final class Photo {
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
-		if ($_SESSION['role'] == 'user') {
-			$query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
-			$result   = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-			if ($result->num_rows == 0){
-				Log::error(Database::get(), __METHOD__, __LINE__, "User: ". $_SESSION['userid']. " tried to set star for photo: ". $this->photoIDs );
-				return false;
-			}
-		}
-
 		// Init vars
 		$error = false;
 
@@ -1145,16 +1136,18 @@ final class Photo {
         $query  = Database::prepare(Database::get(), "SELECT photo_id, star FROM ? WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
-		if ($photos===false) return false;
+        if ($photos->num_rows == 0){
+            Log::error(Database::get(), __METHOD__, __LINE__, "User: ". $_SESSION['userid']. " tried to set star for photo: ". $this->photoIDs );
+			return false;
+        }
 
 		// For each photo
 		while ($photo = $photos->fetch_object()) {
-
 			// Invert star
 			$star = ($photo->star==0 ? 1 : 0);
 
-			// Set star
-			$query  = Database::prepare(Database::get(), "UPDATE ? SET star = '?' WHERE photo_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $star, $photo->id));
+			// Set star // TODO: allow other users to star photo shared with them
+			$query  = Database::prepare(Database::get(), "UPDATE ? SET star = '?' WHERE photo_id = '?' and user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $star, $photo->photo_id, $_SESSION['userid']));
 			$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 			if ($result===false) $error = true;
