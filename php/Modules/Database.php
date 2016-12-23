@@ -446,6 +446,7 @@ final class Database {
         } catch (Exception $e) {
             // Undo changes
             $connection->rollback();
+            Log::notice($connection, $function, $line, 'Failed transaction rolled-back: '. serialize($queries));
             return false;
         }
 		return $result;

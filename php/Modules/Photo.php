@@ -73,28 +73,28 @@ final class Photo {
 				// s for public (share)
 				$public  = 1;
 				$star    = 0;
-				$albumID = 'NULL';
+				$albumID = null;
 				break;
 
 			case 'f': // TODO: have only photos tagged by current user
 				// f for starred (fav)
 				$star    = 1;
 				$public  = 0;
-				$albumID = 'NULL';
+				$albumID = null;
 				break;
 
 			case 'r':
 				// r for recent
 				$public  = 0;
 				$star    = 0;
-				$albumID = 'NULL';
+				$albumID = null;
 				break;
             
             case 'u':
 				// u for unsorted
 				$public  = 0;
 				$star    = 0;
-				$albumID = 'NULL';
+				$albumID = null;
 				break;
 
 			default:
@@ -257,37 +257,24 @@ final class Photo {
 
 		}
 
+        $queries = array();
+
         // Insert photo // TODO: use image hash to check if it already exists
 		$values = array(LYCHEE_TABLE_PHOTOS, $id, $photo_name, $info['type'], $info['width'], $info['height'], $info['size'], $info['iso'], $info['aperture'], $info['make'], $info['model'], $info['shutter'], $info['focal'], $info['takestamp'], $path_thumb, $checksum, $medium);
-        $query  = Database::prepare(Database::get(), "INSERT INTO ? (id, url, type, width, height, size, iso, aperture, make, model, shutter, focal, takestamp, thumbUrl, checksum, medium) VALUES ('?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?')", $values);
-		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-
-        if ($result===false) {
-			if ($returnOnError===true) return false;
-			Response::error('Could not save photo in database!');
-		}
+        array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (id, url, type, width, height, size, iso, aperture, make, model, shutter, focal, takestamp, thumbUrl, checksum, medium) VALUES ('?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?')", $values));
 
         // Insert photo foreign key to photos_users
         $values = array(LYCHEE_TABLE_PHOTOS_USERS, $_SESSION['userid'], $id, $info['title'], $info['description'], $info['tags'], $public, $star);
-        $query  = Database::prepare(Database::get(), "INSERT INTO ? (user_id, photo_id, title, description, tags, public, star) VALUES ('?', '?', '?', '?', '?', '?', '?')", $values);
-		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-
-		if ($result===false) {
-			if ($returnOnError===true) return false;
-			Response::error('Could not save photo_user connection in database!');
-		}
+        array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (user_id, photo_id, title, description, tags, public, star) VALUES ('?', '?', '?', '?', '?', '?', '?')", $values));
 
         // Insert photo foreign key to photos_albums (if album is set)
-        if ($albumID === NULL) {
+        if ($albumID !== null) {
             $values = array(LYCHEE_TABLE_PHOTOS_ALBUMS, $id, $albumID);
-            $query  = Database::prepare(Database::get(), "INSERT INTO ? (photo_id, album_id) VALUES ('?', '?')", $values);
-            $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-
-            if ($result===false) {
-                if ($returnOnError===true) return false;
-                Response::error('Could not save photo_abum connection in database!');
-            }
+            array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (photo_id, album_id) VALUES ('?', '?')", $values));
         }
+
+        // Run queries in one transaction
+        $result = Database::executeTransaction(Database::get(), $queries, __METHOD__, __LINE__);
 
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
