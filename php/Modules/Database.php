@@ -362,7 +362,7 @@ final class Database {
 			'placeholder' => substr_count($query, '?'),
 			'data'        => count($data)
 		);
-		if (($num['data']-$num['placeholder'])<0) Log::notice($connection, __METHOD__, __LINE__, 'Could not completely prepare query. Query has more placeholders than values.');
+		if (($num['data']-$num['placeholder'])<0) Log::notice($connection, __METHOD__, __LINE__, 'Could not completely prepare query. Query has more placeholders than values: ' . $query);
 
 		foreach ($data as $value)  {
 			// Escape
@@ -478,24 +478,24 @@ final class Database {
 		$prefix		= mysqli_real_escape_string($database, $prefix);
 
 		# Save config.php
-$config = "<?php
+		$config = "<?php
 
-###
-# @name			Configuration
-# @author		Tobias Reich
-# @copyright	2015 Tobias Reich
-###
+		###
+		# @name			Configuration
+		# @author		Tobias Reich
+		# @copyright	2015 Tobias Reich
+		###
 
-if(!defined('LYCHEE')) exit('Error: Direct access is not allowed!');
+		if(!defined('LYCHEE')) exit('Error: Direct access is not allowed!');
 
-# Database configuration
-\$dbHost = '$host'; # Host of the database
-\$dbUser = '$user'; # Username of the database
-\$dbPassword = '$password'; # Password of the database
-\$dbName = '$name'; # Database name
-\$dbTablePrefix = '$prefix'; # Table prefix
+		# Database configuration
+		\$dbHost = '$host'; # Host of the database
+		\$dbUser = '$user'; # Username of the database
+		\$dbPassword = '$password'; # Password of the database
+		\$dbName = '$name'; # Database name
+		\$dbTablePrefix = '$prefix'; # Table prefix
 
-?>";
+		?>";
 
 		# Save file
 		if (file_put_contents(LYCHEE_CONFIG_FILE, $config)===false) return 'Warning: Could not create file!';

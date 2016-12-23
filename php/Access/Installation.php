@@ -9,6 +9,7 @@ final class Installation extends Access {
 
 		switch ($fn) {
 			case 'Config::create': self::configCreateAction(); break;
+			case 'Config::createUploadFolder': self::configCreateUploadFolderAction(); break;
 			default:               self::initAction(); break;
 		}
 
@@ -20,6 +21,12 @@ final class Installation extends Access {
 
 		Validator::required(isset($_POST['dbHost'], $_POST['dbUser'], $_POST['dbPassword'], $_POST['dbName'], $_POST['dbTablePrefix']), __METHOD__);
 		Response::json(Config::create($_POST['dbHost'], $_POST['dbUser'], $_POST['dbPassword'], $_POST['dbName'], $_POST['dbTablePrefix']));
+
+	}
+
+    private static function configCreateUploadFolderAction() {
+
+		Response::json(Config::createUploadFolder());
 
 	}
 

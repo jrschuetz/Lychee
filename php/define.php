@@ -11,7 +11,7 @@ define('LYCHEE_STATUS_LOGGEDIN', 2);
 // Define dirs
 define('LYCHEE_DATA', LYCHEE . 'data/');
 define('LYCHEE_SRC', LYCHEE . 'src/');
-define('LYCHEE_UPLOADS', LYCHEE . 'uploads/');
+define('LYCHEE_UPLOADS', LYCHEE . '../uploads/'); // Store outside public folder to prevent direct access to images (without permission check)
 define('LYCHEE_UPLOADS_VIDEO', LYCHEE_UPLOADS . 'video/');
 define('LYCHEE_UPLOADS_BIG', LYCHEE_UPLOADS . 'big/');
 define('LYCHEE_UPLOADS_MEDIUM', LYCHEE_UPLOADS . 'medium/');

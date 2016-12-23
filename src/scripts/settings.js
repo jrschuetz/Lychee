@@ -30,6 +30,49 @@ settings.createConfig = function() {
 			dbTablePrefix
 		}
 
+		api.post('Config::createUploadFolder', null, function(data) {
+
+			if (data!==true) {
+
+				// Could not create upload folders
+				if (data==='Warning: Could not create uplaod folders!') {
+
+					basicModal.show({
+						body: "<p>Unable to create upload folder structure. Permission denied.</p>",
+						buttons: {
+							action: {
+								title: 'Retry',
+								fn: settings.createConfig
+							}
+						}
+					})
+
+					return false
+
+				}
+
+				// Something went wrong
+				basicModal.show({
+					body: '<p>Something unexpected happened. Please try again and check your installation and server. Take a look at the readme for more information.</p>',
+					buttons: {
+						action: {
+							title: 'Retry',
+							fn: settings.createConfig
+						}
+					}
+				})
+
+				return false
+
+			} else {
+
+				// Configuration successful
+				window.location.reload()
+
+			}
+
+		})
+
 		api.post('Config::create', params, function(data) {
 
 			if (data!==true) {

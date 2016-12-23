@@ -30,19 +30,53 @@ final class Config {
 		$prefix   = mysqli_real_escape_string($connection, $prefix);
 
 		// Save config.php
-$config = "<?php
+		$config = "<?php
 
-// Database configuration
-\$dbHost = '$host'; // Host of the database
-\$dbUser = '$user'; // Username of the database
-\$dbPassword = '$password'; // Password of the database
-\$dbName = '$name'; // Database name
-\$dbTablePrefix = '$prefix'; // Table prefix
+		// Database configuration
+		\$dbHost = '$host'; // Host of the database
+		\$dbUser = '$user'; // Username of the database
+		\$dbPassword = '$password'; // Password of the database
+		\$dbName = '$name'; // Database name
+		\$dbTablePrefix = '$prefix'; // Table prefix
 
-?>";
+		?>";
 
 		// Save file
 		if (@file_put_contents(LYCHEE_CONFIG_FILE, $config)===false) return 'Warning: Could not create file!';
+
+		return true;
+
+	}
+
+	/**
+	 * Creates the upload folder structure.
+	 */
+	public static function createUploadFolder() {
+
+        if (!file_exists(LYCHEE_UPLOADS)) {
+            mkdir(LYCHEE_UPLOADS, 0700, true);
+            touch(LYCHEE_UPLOADS . "index.html");
+        }
+        if (!file_exists(LYCHEE_UPLOADS_VIDEO)) {
+            mkdir(LYCHEE_UPLOADS_VIDEO, 0700, true);
+            touch(LYCHEE_UPLOADS_VIDEO . "index.html");
+        }
+        if (!file_exists(LYCHEE_UPLOADS_BIG)) {
+            mkdir(LYCHEE_UPLOADS_BIG, 0700, true);
+            touch(LYCHEE_UPLOADS_BIG . "index.html");
+        }
+        if (!file_exists(LYCHEE_UPLOADS_MEDIUM)) {
+            mkdir(LYCHEE_UPLOADS_MEDIUM, 0700, true);
+            touch(LYCHEE_UPLOADS_MEDIUM . "index.html");
+        }
+        if (!file_exists(LYCHEE_UPLOADS_THUMB)) {
+            mkdir(LYCHEE_UPLOADS_THUMB, 0700, true);
+            touch(LYCHEE_UPLOADS_THUMB . "index.html");
+        }
+        if (!file_exists(LYCHEE_UPLOADS_IMPORT)) {
+            mkdir(LYCHEE_UPLOADS_IMPORT, 0700, true);
+            touch(LYCHEE_UPLOADS_IMPORT . "index.html");
+        }
 
 		return true;
 
