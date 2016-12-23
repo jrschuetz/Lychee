@@ -323,7 +323,7 @@ final class Album {
                         FROM ? p
                         JOIN ? p_u ON p.id = p_u.photo_id
                         LEFT JOIN ? p_a ON p.id = p_a.photo_id
-                    WHERE p_a.album_id = NULL AND p_u.user_id = '?'", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $_SESSION['userid']));
+                    WHERE p_a.album_id is NULL AND p_u.user_id = '?'", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $_SESSION['userid']));
 				$zipTitle = 'Unsorted';
 				break;
 			default:
@@ -333,12 +333,13 @@ final class Album {
                         JOIN ? p_u ON p.id = p_u.photo_id
                         JOIN ? p_a ON p.id = p_a.photo_id
                     WHERE p_a.album_id = '?'", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $this->albumIDs));
+                $zipTitle = 'Untitled';
 		}
 
         $album = null;
 
 		// Get title from database when album is not a SmartAlbum
-		if ($this->albumIDs!=null&&is_numeric($this->albumIDs)) {
+		if (!in_array($this->albumIDs, array('s', 'f', 'r', 'u')) && is_numeric($this->albumIDs)) {
 
 			$query = Database::prepare(Database::get(), "SELECT title FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
 			$album = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
@@ -373,8 +374,6 @@ final class Album {
 
 		// Execute query
 		$photos = Database::execute(Database::get(), $photos, __METHOD__, __LINE__);
-
-		if ($album===null) return false;
 
 		// Check if album empty
 		if ($photos->num_rows==0) {

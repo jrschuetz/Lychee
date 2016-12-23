@@ -41,7 +41,7 @@ view.albums = {
 			}
 
 			// Albums
-			if (albums.json.albums && albums.json.num!==null) {
+			if (albums.json.albums && albums.json.num!==0) {
 
 				$.each(albums.json.albums, function() {
 					albums.parse(this)
