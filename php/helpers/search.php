@@ -64,7 +64,7 @@ function search($term) {
 		// For each thumb
 		$k = 0;
 		while ($thumb = $thumbs->fetch_object()) {
-			$album['thumbs'][$k] = LYCHEE_URL_UPLOADS_THUMB . $thumb->thumbUrl;
+			$album['thumbs'][$k] = LYCHEE_VIEW_FILE . LYCHEE_URL_UPLOADS_THUMB . $thumb->thumbUrl;
 			$k++;
 		}
 

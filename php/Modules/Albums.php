@@ -73,7 +73,7 @@ final class Albums {
 					// For each thumb
 					$k = 0;
 					while ($thumb = $thumbs->fetch_object()) {
-						$album['thumbs'][$k] = LYCHEE_URL_UPLOADS_THUMB . $thumb->thumbUrl;
+						$album['thumbs'][$k] = LYCHEE_VIEW_FILE . LYCHEE_URL_UPLOADS_THUMB . $thumb->thumbUrl;
 						$k++;
 					}
 
@@ -140,7 +140,7 @@ final class Albums {
 
 		while($row = $unsorted->fetch_object()) {
 			if ($i<3) {
-				$return['unsorted']['thumbs'][$i] = LYCHEE_URL_UPLOADS_THUMB . $row->thumbUrl;
+				$return['unsorted']['thumbs'][$i] = LYCHEE_VIEW_FILE . LYCHEE_URL_UPLOADS_THUMB . $row->thumbUrl;
 				$i++;
 			} else break;
 		}
@@ -176,7 +176,7 @@ final class Albums {
 
 		while($row3 = $starred->fetch_object()) {
 			if ($i<3) {
-				$return['starred']['thumbs'][$i] = LYCHEE_URL_UPLOADS_THUMB . $row3->thumbUrl;
+				$return['starred']['thumbs'][$i] = LYCHEE_VIEW_FILE . LYCHEE_URL_UPLOADS_THUMB . $row3->thumbUrl;
 				$i++;
 			} else break;
 		}
@@ -212,7 +212,7 @@ final class Albums {
 
 		while($row2 = $public->fetch_object()) {
 			if ($i<3) {
-				$return['public']['thumbs'][$i] = LYCHEE_URL_UPLOADS_THUMB . $row2->thumbUrl;
+				$return['public']['thumbs'][$i] = LYCHEE_VIEW_FILE . LYCHEE_URL_UPLOADS_THUMB . $row2->thumbUrl;
 				$i++;
 			} else break;
 		}
@@ -248,7 +248,7 @@ final class Albums {
 
 		while($row3 = $recent->fetch_object()) {
 			if ($i<3) {
-				$return['recent']['thumbs'][$i] = LYCHEE_URL_UPLOADS_THUMB . $row3->thumbUrl;
+				$return['recent']['thumbs'][$i] = LYCHEE_VIEW_FILE . LYCHEE_URL_UPLOADS_THUMB . $row3->thumbUrl;
 				$i++;
 			} else break;
 		}

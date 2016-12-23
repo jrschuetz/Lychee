@@ -688,8 +688,8 @@ final class Photo {
 		else                       $photo['medium'] = '';
 
 		// Parse paths
-		$photo['thumbUrl'] = LYCHEE_URL_UPLOADS_THUMB . $data['thumbUrl'];
-		$photo['url']      = LYCHEE_URL_UPLOADS_BIG . $data['url'];
+		$photo['thumbUrl'] = LYCHEE_VIEW_FILE . LYCHEE_URL_UPLOADS_THUMB . $data['thumbUrl'];
+		$photo['url']      = LYCHEE_VIEW_FILE . LYCHEE_URL_UPLOADS_BIG . $data['url'];
 
 		// Use takestamp as sysdate when possible
 		if (isset($data['takestamp'])&&$data['takestamp']!=='0') {
@@ -781,16 +781,16 @@ final class Photo {
 		if (strlen($photo['takestamp'])>1) $photo['takedate'] = strftime('%d %b. %Y', $photo['takestamp']);
 
 		// Parse medium
-		if ($photo['medium']==='1') $photo['medium'] = LYCHEE_URL_UPLOADS_MEDIUM . $photo['url'];
+		if ($photo['medium']==='1') $photo['medium'] = LYCHEE_VIEW_FILE . LYCHEE_URL_UPLOADS_MEDIUM . $photo['url'];
 		else                        $photo['medium'] = '';
 
 		// Parse paths
 		if ( $photo['media_type'] == 'video' ) {
-			$photo['url']	= LYCHEE_URL_UPLOADS_VIDEO . $photo['url'];
+			$photo['url']	= LYCHEE_VIEW_FILE . LYCHEE_URL_UPLOADS_VIDEO . $photo['url'];
 		} else {
-			$photo['url']      = LYCHEE_URL_UPLOADS_BIG . $photo['url'];
+			$photo['url']      = LYCHEE_VIEW_FILE . LYCHEE_URL_UPLOADS_BIG . $photo['url'];
 		}
-		$photo['thumbUrl'] = LYCHEE_URL_UPLOADS_THUMB . $photo['thumbUrl'];
+		$photo['thumbUrl'] = LYCHEE_VIEW_FILE . LYCHEE_URL_UPLOADS_THUMB . $photo['thumbUrl'];
 
 		if ($albumID!='false') {
 
