@@ -31,35 +31,32 @@ sidebar.bind = function() {
 	// Event Name
 	let eventName = lychee.getEventName()
 
-	sidebar
-		.dom('#edit_title')
-		.off(eventName)
-		.on(eventName, function() {
-			if (visible.photo())      photo.setTitle([ photo.getID() ])
-			else if (visible.album()) album.setTitle([ album.getID() ])
-		})
-
-	sidebar
-		.dom('#edit_description')
-		.off(eventName)
-		.on(eventName, function() {
-			if (visible.photo())      photo.setDescription(photo.getID())
-			else if (visible.album()) album.setDescription(album.getID())
-		})
-
-	sidebar
-		.dom('#edit_tags')
-		.off(eventName)
-		.on(eventName, function() {
-			photo.editTags([ photo.getID() ])
-		})
-
-	sidebar
-		.dom('#tags .tag span')
-		.off(eventName)
-		.on(eventName, function() {
-			photo.deleteTag(photo.getID(), $(this).data('index'))
-		})
+    sidebar
+           .dom('#edit_title')
+           .off(eventName)
+           .on(eventName, function() {
+           if (visible.photo())      photo.setTitle([ photo.getID() ])
+           else if (visible.album()) album.setTitle([ album.getID() ])
+   	})
+   	sidebar
+   		.dom('#edit_description')
+   		.off(eventName)
+   		.on(eventName, function() {
+   			if (visible.photo())      photo.setDescription(photo.getID())
+   			else if (visible.album()) album.setDescription(album.getID())
+   		})
+   	sidebar
+   		.dom('#edit_tags')
+   		.off(eventName)
+   		.on(eventName, function() {
+   			photo.editTags([ photo.getID() ])
+   		})
+   	sidebar
+   		.dom('#tags .tag span')
+   		.off(eventName)
+   		.on(eventName, function() {
+   			photo.deleteTag(photo.getID(), $(this).data('index'))
+   		})
 
 	return true
 
@@ -112,6 +109,12 @@ sidebar.changeAttr = function(attr, value = '-', dangerouslySetInnerHTML = false
 sidebar.createStructure.photo = function(data) {
 
 	if (data==null || data==='') return false
+
+    // Check if user can edited photo (not shared with)
+    console.log(data)
+    if ( lychee.role === 'user') {
+        console.log('yes')
+    }
 
 	let editable  = false
 	let exifHash  = data.takestamp + data.make + data.model + data.shutter + data.aperture + data.focal + data.iso
