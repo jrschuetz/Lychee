@@ -50,7 +50,7 @@ function view($path) { // TODO: rework so only photo id is needed and requested 
                     SELECT 1 FROM ? p
                         JOIN ? p_a ON p.id = p_a.photo_id
                         JOIN ? pr ON p_a.album_id = pr.album_id
-                        WHERE (p.url = '?' || p.thumbUrl = '?') && pr.user_id = '?' 
+                        WHERE (p.url = '?' || p.thumbUrl = '?') && pr.user_id = '?' && pr.view = 1
                     LIMIT 1
                 ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $filename, $filename, $_SESSION['userid'], LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $filename, $filename, $_SESSION['userid']));               
             }
