@@ -1,37 +1,78 @@
 <?php
 
-use \Lychee\Modules\Log;
-use \Lychee\Modules\Database;
+namespace Lychee;
 
-require(__DIR__ . '../../define.php');
+use Lychee\Modules\Database;
+use Lychee\Modules\Log;
+use Lychee\Modules\Settings;
+
+require(__DIR__ . '/autoload.php');
+require(__DIR__ . '/define.php');
+
+// Start the session and set the default timezone
+session_start();
+date_default_timezone_set('UTC');
 
 if (isset($_GET['file'])) {
-    return get_upload($_GET['file']);
+    return view($_GET['file']);
 } else {
     return null;
 }
 
+function view($path) { // TODO: rework so only photo id is needed and requested filesize?
+    // Check if user is logged in
+	if ((isset($_SESSION['login'])&&$_SESSION['login']===true)&&(isset($_SESSION['identifier'])&&$_SESSION['identifier']===Settings::get()['identifier']) && isset($_SESSION['role'])) {
+        
+        $file = LYCHEE_UPLOADS . substr($path, 8); // TODO: remove uploads/ part from all html code so removal here is no longer needed
+        $file = realpath($file);
+        
+        // Check if path exists
+        if ($file === false) {
+            Log::error(Database::get(), __METHOD__, __LINE__, 'User ' . $_SESSION['userid'] . ' tried to access non-existant path: ' . $_GET['file']);
+            die("Access denied.");
+        }
+        
+        // Check if requested path is inside configured upload folder
+        if (strcmp($file,  LYCHEE_UPLOADS) > 0 ) {
+            // Check if user can access file
+            $filename = basename($file); // Get filename
+            $filename = str_replace('@2x', '', $filename); // Remove @2x from big thumb url
+    
+            if ($_SESSION['role'] === 'admin') {
+                $query  = Database::prepare(Database::get(), "SELECT 1 FROM ? WHERE url = '?' || thumbUrl = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS, $filename, $filename));
+            } else {
+                $query  = Database::prepare(Database::get(), "
+                    SELECT 1 FROM ? p
+                        JOIN ? p_u
+                            ON p.id = p_u.photo_id
+                        WHERE (p.url = '?' || p.thumbUrl = '?') && p_u.user_id = '?'
+                    UNION
+                    SELECT 1 FROM ? p
+                        JOIN ? p_a ON p.id = p_a.photo_id
+                        JOIN ? pr ON p_a.album_id = pr.album_id
+                        WHERE (p.url = '?' || p.thumbUrl = '?') && pr.user_id = '?' 
+                    LIMIT 1
+                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $filename, $filename, $_SESSION['userid'], LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $filename, $filename, $_SESSION['userid']));               
+            }
+    		$allowed = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
-function get_upload($path) {
-    $file = LYCHEE_UPLOADS . substr($path, 8); // TODO: remove uploads/ part from all html code so removal here is no longer needed
-    $file = realpath($file);
+    		if ($allowed->num_rows === 0) { // User has no priviliges to access file
+               Log::error(Database::get(), __METHOD__, __LINE__, 'User ' . $_SESSION['userid'] . ' tried to access photo it doesn\'t have access to: ' . $file);
+               die("Access denied");
+            }
     
-    // Check if path exists
-    if ($file === false) {
-        die("Access denied: " . $file);
-        Log::error(Database::get(), __METHOD__, __LINE__, 'Users tried to access non-existant path: ' . $_GET['file']);
-    }
-    
-    // Check if requested path is inside configured upload folder
-    if (strcmp($file,  LYCHEE_UPLOADS) > 0 ) {
-        header("Content-length: ". filesize($file));
-        header("Content-type: ". get_mime_type($file));
-        readfile($file);
-    } else {
-        die("Access denied.");
-        Log::error(Database::get(), __METHOD__, __LINE__, 'Users tried to access path outside upload folder: ' . $file);
+            header("Content-length: ". filesize($file));
+            header("Content-type: ". get_mime_type($file));
+            readfile($file);
+        } else {
+            Log::error(Database::get(), __METHOD__, __LINE__, 'User ' . $_SESSION['userid'] . ' tried to access path outside upload folder: ' . $file);
+            die("Access denied");
+        }
+    } else { // Guest
+        exit();
     }
 }
+
 
 /*
 * From: https://gist.github.com/Erutan409/8e774dfb2b343fe78b14#file-mimetype-php

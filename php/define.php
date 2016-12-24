@@ -21,7 +21,7 @@ define('LYCHEE_PLUGINS', LYCHEE . 'plugins/');
 
 // Define files
 define('LYCHEE_CONFIG_FILE', LYCHEE_DATA . 'config.php');
-define('LYCHEE_VIEW_FILE', 'php/helpers/view.php?file=');
+define('LYCHEE_VIEW_FILE', 'php/view.php?file=');
 
 // Define urls
 define('LYCHEE_URL_UPLOADS_VIDEO', 'uploads/video/');
