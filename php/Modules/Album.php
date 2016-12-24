@@ -200,7 +200,7 @@ final class Album {
                             SELECT a.*, p.view, p.upload, p.erase FROM ? a
                                 JOIN ? p
                                     ON a.id = p.album_id
-                            WHERE a.id = '?' and p.user_id = '?' and p.view = '1' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $this->albumIDs, $_SESSION['userid'], $_SESSION['userid']));
+                            WHERE a.id = '?' and p.user_id = '?' and p.view = '1' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $this->albumIDs, $_SESSION['userid']));
                         $albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
                     }
                 }
@@ -209,9 +209,9 @@ final class Album {
 				$return = Album::prepareData($return);
 				$query  = Database::prepare(Database::get(), "
                     SELECT p.id, p_u.title, p_u.tags, p_u.public, p_u.star, p_a.album_id, p.thumbUrl, p.takestamp, p.url, p.medium FROM ? p_u
-                        LEFT JOIN ? p
+                        JOIN ? p
                             ON p_u.photo_id = p.id
-                        LEFT JOIN ? p_a
+                        JOIN ? p_a
                             ON p.id = p_a.photo_id
                     WHERE p_a.album_id = '?'
                     " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_ALBUMS, $this->albumIDs));
