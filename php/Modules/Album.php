@@ -267,7 +267,7 @@ final class Album {
 		$return['num'] = $photos->num_rows;
 
         // Add if album is editable by user (if owned by user)
-        if ($return['user_id'] === $_SESSION['userid']) {
+        if ($_SESSION['role'] === 'admin' || $return['user_id'] === $_SESSION['userid']) {
             $return['editable'] = true;
         } else {
             $return['editable'] = false;
