@@ -832,6 +832,13 @@ final class Photo {
 
 		}
 
+        // Add if photo is editable by user (if owned by user)
+        if ($photo['user_id'] === $_SESSION['userid']) {
+            $photo['editable'] = true;
+        } else {
+            $photo['editable'] = false;
+        }
+
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
 

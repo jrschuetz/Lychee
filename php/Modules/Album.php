@@ -266,6 +266,13 @@ final class Album {
 		$return['id']  = $this->albumIDs;
 		$return['num'] = $photos->num_rows;
 
+        // Add if album is editable by user (if owned by user)
+        if ($return['user_id'] === $_SESSION['userid']) {
+            $return['editable'] = true;
+        } else {
+            $return['editable'] = false;
+        }
+
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
 
@@ -562,13 +569,22 @@ final class Album {
 	/**
 	 * @return boolean Returns true when successful.
 	 */
-	public function setPublic($public, $password, $visible, $downloadable) {
+	public function setPublic($public, $password, $visible, $downloadable) { // TODO: don't allow if shared with user!
 
 		// Check dependencies
 		Validator::required(isset($this->albumIDs), __METHOD__);
 
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
+
+        // Check if album is owned by user
+		$query  = Database::prepare(Database::get(), "SELECT 1 FROM ? WHERE id = '?' && user_id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs, $_SESSION['userid']));
+		$allowed = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
+        if ($allowed->num_rows === 0) {
+            Log::error(Database::get(), __METHOD__, __LINE__, 'Tried to change public settings of other users album');
+            return false;
+        }
 
 		// Convert values
 		$public       = ($public==='1' ? 1 : 0);
@@ -582,9 +598,13 @@ final class Album {
 		if ($result===false) return false;
 
 		// Reset permissions for photos
-		if ($public===1) {
+		if ($public===0) {
 
-			$query  = Database::prepare(Database::get(), "UPDATE ? SET public = 0 WHERE album IN (?)", array(LYCHEE_TABLE_PHOTOS, $this->albumIDs));
+			$query  = Database::prepare(Database::get(), "
+                UPDATE ? p_u
+                    JOIN ? p_a
+                        ON p_u.photo_id = p_a.photo_id
+                SET p_u.public = 0 WHERE p_a.album_id IN (?) and p_u.user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $this->albumIDs, $_SESSION['userid']));
 			$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 			if ($result===false) return false;

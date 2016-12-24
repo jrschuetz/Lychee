@@ -110,19 +110,10 @@ sidebar.createStructure.photo = function(data) {
 
 	if (data==null || data==='') return false
 
-    // Check if user can edited photo (not shared with)
-    console.log(data)
-    if ( lychee.role === 'user') {
-        console.log('yes')
-    }
-
-	let editable  = false
+	let editable  = data.editable
 	let exifHash  = data.takestamp + data.make + data.model + data.shutter + data.aperture + data.focal + data.iso
 	let structure = {}
 	let _public   = ''
-
-	// Enable editable when user logged in
-	if (lychee.publicMode===false) editable = true
 
 	// Set value for public
 	switch (data.public) {
