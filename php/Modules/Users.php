@@ -147,6 +147,7 @@ final class Users {
       }
       $state = $state ? 1 : 0;
 
+      // TODO: remove if all rights are set to 0
       $query = Database::prepare(Database::get(), "INSERT INTO ? (`user_id`, `album_id`, `?`) VALUES ('?', '?','?') ON DUPLICATE KEY UPDATE `?`='?';", array(LYCHEE_TABLE_PRIVILEGES, $field, $userid, $albumid, $state, $field, $state));
 
       Log::error(Database::get(), __METHOD__, __LINE__, "test" . $query);
