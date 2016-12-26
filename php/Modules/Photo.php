@@ -1371,9 +1371,11 @@ final class Photo {
 		// Init vars
 		$error = false;
 
+        // TODO: do check on privileges!
+
 		// Get photos
-        // TODO: move duplication to lychee_photos_users
-		$query  = Database::prepare(Database::get(), "SELECT id, checksum FROM ? WHERE id IN (?)", array(LYCHEE_TABLE_PHOTOS, $this->photoIDs));
+        // TODO: keep duplicated photo in same album!
+		$query  = Database::prepare(Database::get(), "SELECT id, photo_id, user_id FROM ? WHERE id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		if ($photos===false) return false;
@@ -1385,8 +1387,8 @@ final class Photo {
 			$id = generateID();
 
 			// Duplicate entry
-			$values = array(LYCHEE_TABLE_PHOTOS, $id, LYCHEE_TABLE_PHOTOS, $photo->id);
-			$query  = Database::prepare(Database::get(), "INSERT INTO ? (id, title, url, description, tags, type, width, height, size, iso, aperture, make, model, shutter, focal, takestamp, thumbUrl, album, public, star, checksum) SELECT '?' AS id, title, url, description, tags, type, width, height, size, iso, aperture, make, model, shutter, focal, takestamp, thumbUrl, album, public, star, checksum FROM ? WHERE id = '?'", $values);
+			$values = array(LYCHEE_TABLE_PHOTOS_USERS, $id, $_SESSION['userid'], LYCHEE_TABLE_PHOTOS_USERS, $photo->id);
+			$query  = Database::prepare(Database::get(), "INSERT INTO ? (id, photo_id, user_id, title, description, tags, public, star) SELECT '?' AS id, photo_id, '?' AS user_id, title, description, tags, public, star FROM ? WHERE id = '?'", $values);
 			$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 			if ($result===false) $error = true;
