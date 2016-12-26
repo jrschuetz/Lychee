@@ -25,7 +25,7 @@ function view($path) { // TODO: rework so only photo id is needed and requested 
         
         $file = LYCHEE_UPLOADS . substr($path, 8); // TODO: remove uploads/ part from all html code so removal here is no longer needed
         $file = realpath($file);
-        
+
         // Check if path exists
         if ($file === false) {
             Log::error(Database::get(), __METHOD__, __LINE__, 'User ' . $_SESSION['userid'] . ' tried to access non-existant path: ' . $_GET['file']);
@@ -33,7 +33,7 @@ function view($path) { // TODO: rework so only photo id is needed and requested 
         }
         
         // Check if requested path is inside configured upload folder
-        if (strcmp($file,  LYCHEE_UPLOADS) > 0 ) {
+        if (strcmp($file,  realpath(LYCHEE_UPLOADS)) > 0 ) {
             // Check if user can access file
             $filename = basename($file); // Get filename
             $filename = str_replace('@2x', '', $filename); // Remove @2x from big thumb url
@@ -65,7 +65,7 @@ function view($path) { // TODO: rework so only photo id is needed and requested 
             header("Content-type: ". get_mime_type($file));
             readfile($file);
         } else {
-            Log::error(Database::get(), __METHOD__, __LINE__, 'User ' . $_SESSION['userid'] . ' tried to access path outside upload folder: ' . $file);
+            Log::error(Database::get(), __METHOD__, __LINE__, 'User ' . $_SESSION['userid'] . ' tried to access path ' . $file . ' which is outside upload folder ' . realpath(LYCHEE_UPLOADS));
             die("Access denied");
         }
     } else { // Guest
