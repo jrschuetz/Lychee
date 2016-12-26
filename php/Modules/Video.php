@@ -1,12 +1,8 @@
 <?php
 
-###
-# @name			Video Module
-###
+namespace Lychee\Modules;
 
-if (!defined('LYCHEE')) exit('Error: Direct access is not allowed!');
-
-class Video extends Module {
+final class Video {
 
 	private $database	= null;
 	private $settings	= null;
