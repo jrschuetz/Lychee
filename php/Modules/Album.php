@@ -102,14 +102,14 @@ final class Album {
                 
                 if ($_SESSION['role'] === 'admin') {
                     $query = Database::prepare(Database::get(), "
-                        SELECT p.id, p_u.title, p_u.tags, p_u.public, p_u.star, p.thumbUrl, p.takestamp, p.url, p.medium, 'f' as album_id FROM ? p
+                        SELECT p_u.id, p_u.title, p_u.tags, p_u.public, p_u.star, p.thumbUrl, p.takestamp, p.url, p.medium, 'f' as album_id FROM ? p
                             JOIN ? p_u
                                 ON p.id = p_u.photo_id
                         WHERE p_u.star = 1
                         " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS));
                 } else {
                 	$query = Database::prepare(Database::get(), "
-                        SELECT p.id, p_u.title, p_u.tags, p_u.public, p_u.star, p.thumbUrl, p.takestamp, p.url, p.medium, 'f' as album_id FROM ? p
+                        SELECT p_u.id, p_u.title, p_u.tags, p_u.public, p_u.star, p.thumbUrl, p.takestamp, p.url, p.medium, 'f' as album_id FROM ? p
                             JOIN ? p_u
                                 ON p.id = p_u.photo_id
                         WHERE p_u.user_id = '?' AND p_u.star = 1
@@ -123,14 +123,14 @@ final class Album {
 				
                 if ($_SESSION['role'] === 'admin') {
                     $query = Database::prepare(Database::get(), "
-                        SELECT p.id, p_u.title, p_u.tags, p_u.public, p_u.star, p.thumbUrl, p.takestamp, p.url, p.medium, 's' as album_id FROM ? p
+                        SELECT p_u.id, p_u.title, p_u.tags, p_u.public, p_u.star, p.thumbUrl, p.takestamp, p.url, p.medium, 's' as album_id FROM ? p
                             JOIN ? p_u
                                 ON p.id = p_u.photo_id
                         WHERE p_u.public = 1
                         " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS));
                 } else {
                     $query = Database::prepare(Database::get(), "
-                        SELECT p.id, p_u.title, p_u.tags, p_u.public, p_u.star, p.thumbUrl, p.takestamp, p.url, p.medium, 's' as album_id FROM ? p
+                        SELECT p_u.id, p_u.title, p_u.tags, p_u.public, p_u.star, p.thumbUrl, p.takestamp, p.url, p.medium, 's' as album_id FROM ? p
                             JOIN ? p_u
                                 ON p.id = p_u.photo_id
                         WHERE p_u.user_id = '?' AND p_u.public = 1
@@ -144,14 +144,14 @@ final class Album {
                 
                 if ($_SESSION['role'] === 'admin') {
                     $query = Database::prepare(Database::get(), "
-                        SELECT p.id, p_u.title, p_u.tags, p_u.public, p_u.star, p.thumbUrl, p.takestamp, p.url, p.medium, 'r' as album_id FROM ? p
+                        SELECT p_u.id, p_u.title, p_u.tags, p_u.public, p_u.star, p.thumbUrl, p.takestamp, p.url, p.medium, 'r' as album_id FROM ? p
                             JOIN ? p_u
                                 ON p.id = p_u.photo_id
                         WHERE LEFT(p.id, 10) >= unix_timestamp(DATE_SUB(NOW(), INTERVAL 1 DAY))
                         " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS));
                 } else {
                     $query = Database::prepare(Database::get(), "
-                        SELECT p.id, p_u.title, p_u.tags, p_u.public, p_u.star, p.thumbUrl, p.takestamp, p.url, p.medium, 'r' as album_id FROM ? p
+                        SELECT p_u.id, p_u.title, p_u.tags, p_u.public, p_u.star, p.thumbUrl, p.takestamp, p.url, p.medium, 'r' as album_id FROM ? p
                             JOIN ? p_u
                                 ON p.id = p_u.photo_id
                         WHERE p_u.user_id = '?' AND LEFT(p.id, 10) >= unix_timestamp(DATE_SUB(NOW(), INTERVAL 1 DAY))
@@ -165,20 +165,20 @@ final class Album {
                 
                 if ($_SESSION['role'] === 'admin') {
                     $query = Database::prepare(Database::get(), "
-                        SELECT p.id, p_u.title, p_u.tags, p_u.public, p_u.star, p_a.album_id, p.thumbUrl, p.takestamp, p.url, p.medium, 'u' as album_id FROM ? p_u
+                        SELECT p_u.id, p_u.title, p_u.tags, p_u.public, p_u.star, p_a.album_id, p.thumbUrl, p.takestamp, p.url, p.medium, 'u' as album_id FROM ? p_u
                             LEFT JOIN ? p
                                 ON p_u.photo_id = p.id
                             LEFT JOIN ? p_a
-                                ON p.id = p_a.photo_id
+                                ON p_u.id = p_a.photo_user_id
                         WHERE p_a.album_id is NULL
                         " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_ALBUMS));
                 } else {
                     $query = Database::prepare(Database::get(), "
-                        SELECT p.id, p_u.title, p_u.tags, p_u.public, p_u.star, p_a.album_id, p.thumbUrl, p.takestamp, p.url, p.medium, 'u' as album_id FROM ? p_u
+                        SELECT p_u.id, p_u.title, p_u.tags, p_u.public, p_u.star, p_a.album_id, p.thumbUrl, p.takestamp, p.url, p.medium, 'u' as album_id FROM ? p_u
                             LEFT JOIN ? p
                                 ON p_u.photo_id = p.id
                             LEFT JOIN ? p_a
-                                ON p.id = p_a.photo_id
+                                ON p_u.id = p_a.photo_user_id
                         WHERE p_u.user_id = '?' AND p_a.album_id is NULL
                         " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_ALBUMS, $_SESSION['userid']));
                 }
@@ -208,11 +208,11 @@ final class Album {
 				$return = $albums->fetch_assoc();
 				$return = Album::prepareData($return);
 				$query  = Database::prepare(Database::get(), "
-                    SELECT p.id, p_u.title, p_u.tags, p_u.public, p_u.star, p_a.album_id, p.thumbUrl, p.takestamp, p.url, p.medium FROM ? p_u
+                    SELECT p_u.id, p_u.title, p_u.tags, p_u.public, p_u.star, p_a.album_id, p.thumbUrl, p.takestamp, p.url, p.medium FROM ? p_u
                         JOIN ? p
                             ON p_u.photo_id = p.id
                         JOIN ? p_a
-                            ON p.id = p_a.photo_id
+                            ON p_u.id = p_a.photo_user_id
                     WHERE p_a.album_id = '?'
                     " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_ALBUMS, $this->albumIDs));
 				break;
@@ -321,7 +321,7 @@ final class Album {
                     SELECT p_u.title, p.url
                         FROM ? p
                         JOIN ? p_u ON p.id = p_u.photo_id
-                    WHERE LEFT(p.id, 10) >= unix_timestamp(DATE_SUB(NOW(), INTERVAL 1 DAY)) GROUP BY checksum AND p_u.user_id = '?'", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $_SESSION['userid']));
+                    WHERE LEFT(p_u.id, 10) >= unix_timestamp(DATE_SUB(NOW(), INTERVAL 1 DAY)) GROUP BY checksum AND p_u.user_id = '?'", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $_SESSION['userid']));
 				$zipTitle = 'Recent';
 				break;
             case 'u':
@@ -329,7 +329,7 @@ final class Album {
                     SELECT p_u.title, p.url
                         FROM ? p
                         JOIN ? p_u ON p.id = p_u.photo_id
-                        LEFT JOIN ? p_a ON p.id = p_a.photo_id
+                        LEFT JOIN ? p_a ON p_u.id = p_a.photo_user_id
                     WHERE p_a.album_id is NULL AND p_u.user_id = '?'", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $_SESSION['userid']));
 				$zipTitle = 'Unsorted';
 				break;
@@ -338,7 +338,7 @@ final class Album {
                     SELECT p_u.title, p.url
                         FROM ? p
                         JOIN ? p_u ON p.id = p_u.photo_id
-                        JOIN ? p_a ON p.id = p_a.photo_id
+                        JOIN ? p_a ON p_u.id = p_a.photo_user_id
                     WHERE p_a.album_id = '?'", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $this->albumIDs));
                 $zipTitle = 'Untitled';
 		}
@@ -603,7 +603,7 @@ final class Album {
 			$query  = Database::prepare(Database::get(), "
                 UPDATE ? p_u
                     JOIN ? p_a
-                        ON p_u.photo_id = p_a.photo_id
+                        ON p_u.id = p_a.photo_user_id
                 SET p_u.public = 0 WHERE p_a.album_id IN (?) and p_u.user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $this->albumIDs, $_SESSION['userid']));
 			$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 

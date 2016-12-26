@@ -100,7 +100,7 @@ final class Settings {
 		// Set row
 		switch ($type) {
 
-			case 'id':          $sorting .= 'id'; break;
+			case 'id':          $sorting .= 'p_u.id'; break;
 			case 'title':       $sorting .= 'title'; break;
 			case 'description': $sorting .= 'description'; break;
 			case 'public':      $sorting .= 'public'; break;

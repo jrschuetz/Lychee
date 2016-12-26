@@ -64,7 +64,7 @@ final class Albums {
                             JOIN ? p_u
                                 ON p.id = p_u.photo_id
                             JOIN ? p_a
-                                ON p.id = p_a.photo_id
+                                ON p_u.id = p_a.photo_user_id
                             WHERE p_a.album_id = '?' ORDER BY p_u.star DESC, " . substr(Settings::get()['sortingPhotos'], 9) . " LIMIT 3", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $album['id']));
 					$thumbs = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
@@ -114,18 +114,21 @@ final class Albums {
         if ($_SESSION['role'] === 'admin') {
             $query = Database::prepare(Database::get(), "
                 SELECT thumbUrl FROM ? p
-                    LEFT JOIN ? p_a ON p.id = p_a.photo_id
-                WHERE p_a.album_id is NULL
-                " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_ALBUMS));
-        } else {
-            $query = Database::prepare(Database::get(), "
-                SELECT p.thumbUrl FROM ? p_u
-                    LEFT JOIN ? p
+                    LEFT JOIN ? p_u
                         ON p_u.photo_id = p.id
                     LEFT JOIN ? p_a
-                        ON p.id = p_a.photo_id
+                        ON p_u.id = p_a.photo_user_id
+                WHERE p_a.album_id is NULL
+                " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS));
+        } else {
+            $query = Database::prepare(Database::get(), "
+                SELECT p.thumbUrl FROM ? p
+                    LEFT JOIN ? p_u
+                        ON p_u.photo_id = p.id
+                    LEFT JOIN ? p_a
+                        ON p_u.id = p_a.photo_user_id
                 WHERE p_u.user_id = ? AND p_a.album_id is NULL
-                " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_ALBUMS, $_SESSION['userid'])); // WHERE ALBUM IS NULL  // TODO: multiple albums per photo possible
+                " . Settings::get()['sortingPhotos'], array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $_SESSION['userid'])); // WHERE ALBUM IS NULL  // TODO: multiple albums per photo possible
         }
 
         $unsorted = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
@@ -148,7 +151,7 @@ final class Albums {
 		/**
 		 * Starred
 		 */
-
+        // TODO: with duplicate photos, same photo can be shown more than once -> add DISTINCT?
         if ($_SESSION['role'] === 'admin') {
             $query = Database::prepare(Database::get(), "
                 SELECT p.thumbUrl FROM ? p

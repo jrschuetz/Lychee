@@ -307,7 +307,7 @@ final class Database {
 			return false;
         }
         // Create connections
-        $query  = self::prepare($connection, $query, array(LYCHEE_TABLE_PHOTOS_ALBUMS, LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_ALBUMS));
+        $query  = self::prepare($connection, $query, array(LYCHEE_TABLE_PHOTOS_ALBUMS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_ALBUMS));
         $result = self::execute($connection, $query, __METHOD__, __LINE__);
         if ($result===false) return false;
 

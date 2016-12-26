@@ -264,13 +264,13 @@ final class Photo {
         array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (id, url, type, width, height, size, iso, aperture, make, model, shutter, focal, takestamp, thumbUrl, checksum, medium) VALUES ('?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?')", $values));
 
         // Insert photo foreign key to photos_users
-        $values = array(LYCHEE_TABLE_PHOTOS_USERS, $_SESSION['userid'], $id, $info['title'], $info['description'], $info['tags'], $public, $star);
-        array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (user_id, photo_id, title, description, tags, public, star) VALUES ('?', '?', '?', '?', '?', '?', '?')", $values));
+        $values = array(LYCHEE_TABLE_PHOTOS_USERS, generateID(), $id, $_SESSION['userid'], $info['title'], $info['description'], $info['tags'], $public, $star);
+        array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (id, photo_id, user_id, title, description, tags, public, star) VALUES ('?', '?', '?', '?', '?', '?', '?', '?')", $values));
 
         // Insert photo foreign key to photos_albums (if album is set)
         if ($albumID !== null) {
             $values = array(LYCHEE_TABLE_PHOTOS_ALBUMS, $id, $albumID);
-            array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (photo_id, album_id) VALUES ('?', '?')", $values));
+            array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (photo_user_id, album_id) VALUES ('?', '?')", $values));
         }
 
         // Run queries in one transaction
@@ -727,13 +727,15 @@ final class Photo {
 		// First check if the user has rights to view photo
 		$query = '';
 		if ($_SESSION['role'] == 'user' && in_array( $albumID,  array('s', 'f', 'r', 'u'))) { // Load photo that is in a smart album
+
+            // TODO: fix overrides of 'id' field
             $query = Database::prepare(Database::get(), "
                 SELECT * FROM ? p
                     LEFT JOIN ? p_u
                         ON p.id = p_u.photo_id
                     LEFT JOIN ? p_a
-                        on p.id = p_a.photo_id
-                WHERE p_u.user_id = ? AND p.id = '?'
+                        on p_u.id = p_a.photo_user_id
+                WHERE p_u.user_id = '?' AND p_u.id = '?'
                 ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $_SESSION['userid'], $this->photoIDs));
             $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
         } elseif ($_SESSION['role'] == 'user' && $albumID != 'false') {
@@ -742,21 +744,21 @@ final class Photo {
                         JOIN ? p_u
                             ON p.id = p_u.photo_id
                         JOIN ? p_a
-                            ON p.id = p_a.photo_id
+                            ON p_u.id = p_a.photo_user_id
                         JOIN ? a
                             ON a.id = p_a.album_id
-                        WHERE p.id=? && p_a.album_id=? && p_u.user_id = '?'
+                        WHERE p_u.id = '?' AND p_a.album_id = '?' AND p_u.user_id = '?'
                     UNION
                     SELECT p.*, p_u.*, p_a.*, a.public FROM ? p
                         JOIN ? p_u
                             ON p.id = p_u.photo_id
                         JOIN ? p_a
-                            ON p.id = p_a.photo_id
+                            ON p_u.id = p_a.photo_user_id
                         JOIN ? pr
                             ON p_a.album_id = pr.album_id
                         JOIN ? a
                             ON a.id = p_a.album_id
-                        WHERE p.id=? && pr.user_id = '?' && pr.view = 1
+                        WHERE p_u.id = '?' AND pr.user_id = '?' AND pr.view = 1
                     LIMIT 1
                 ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, LYCHEE_TABLE_ALBUMS, $this->photoIDs, $albumID, $_SESSION['userid'], LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, LYCHEE_TABLE_PRIVILEGES, LYCHEE_TABLE_ALBUMS, $this->photoIDs, $_SESSION['userid']));
                 $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
@@ -767,8 +769,8 @@ final class Photo {
                     LEFT JOIN ? p_u
                         ON p.id = p_u.photo_id
                     LEFT JOIN ? p_a
-                        on p.id = p_a.photo_id
-                WHERE p.id = '?' LIMIT 1
+                        on p_u.id = p_a.photo_user_id
+                WHERE p_u.id = '?' LIMIT 1
                 ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $this->photoIDs));
             $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 		}
@@ -992,10 +994,10 @@ final class Photo {
 
 		// Get photo
 		$query  = Database::prepare(Database::get(), "
-            SELECT p_u.title, p.url
+            SELECT p_u.title, p.id, p.url
                 FROM ? p
                 LEFT JOIN ? p_u ON p.id = p_u.photo_id
-            WHERE p.id = '?' LIMIT 1
+            WHERE p_u.id = '?' LIMIT 1
         ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
@@ -1058,7 +1060,7 @@ final class Photo {
 
         // Check rights to set title on photo
 		if ($_SESSION['role'] == 'user') {
-			$query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
+			$query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
 			$result   = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 			if ($result->num_rows == 0){
 				Log::error(Database::get(), __METHOD__, __LINE__, "User: ". $_SESSION['userid']. " tried to set title for photo: ". $this->photoIDs );
@@ -1068,9 +1070,9 @@ final class Photo {
 
 		// Set title
         if ($_SESSION['role'] == 'user') {
-            $query  = Database::prepare(Database::get(), "UPDATE ? SET title = '?' WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $title, $this->photoIDs, $_SESSION['userid']));
+            $query  = Database::prepare(Database::get(), "UPDATE ? SET title = '?' WHERE id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $title, $this->photoIDs, $_SESSION['userid']));
         } else { // Admin can set tags for all photos
-            $query  = Database::prepare(Database::get(), "UPDATE ? SET title = '?' WHERE photo_id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $title, $this->photoIDs));
+            $query  = Database::prepare(Database::get(), "UPDATE ? SET title = '?' WHERE id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $title, $this->photoIDs));
         }
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
@@ -1095,7 +1097,7 @@ final class Photo {
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
 		if ($_SESSION['role'] == 'user') {
-			$query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
+			$query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
 			$result   = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 			if ($result->num_rows == 0){
 				Log::error(Database::get(), __METHOD__, __LINE__, "User: ". $_SESSION['userid']. " tried to set description for photo: ". $this->photoIDs );
@@ -1105,9 +1107,9 @@ final class Photo {
 
 		// Set description
         if ($_SESSION['role'] == 'user') {
-            $query  = Database::prepare(Database::get(), "UPDATE ? SET description = '?' WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $description, $this->photoIDs, $_SESSION['userid']));
+            $query  = Database::prepare(Database::get(), "UPDATE ? SET description = '?' WHERE id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $description, $this->photoIDs, $_SESSION['userid']));
         } else { // Admin can set tags for all photos
-            $query  = Database::prepare(Database::get(), "UPDATE ? SET description = '?' WHERE photo_id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $description, $this->photoIDs, $_SESSION['userid']));
+            $query  = Database::prepare(Database::get(), "UPDATE ? SET description = '?' WHERE id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $description, $this->photoIDs, $_SESSION['userid']));
         }
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
@@ -1135,7 +1137,7 @@ final class Photo {
 		$error = false;
 
 		// Get photos
-        $query  = Database::prepare(Database::get(), "SELECT photo_id, star FROM ? WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
+        $query  = Database::prepare(Database::get(), "SELECT photo_id, star FROM ? WHERE id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
         if ($photos->num_rows == 0){
@@ -1149,7 +1151,7 @@ final class Photo {
 			$star = ($photo->star==0 ? 1 : 0);
 
 			// Set star // TODO: allow other users to star photo shared with them
-			$query  = Database::prepare(Database::get(), "UPDATE ? SET star = '?' WHERE photo_id = '?' and user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $star, $photo->photo_id, $_SESSION['userid']));
+			$query  = Database::prepare(Database::get(), "UPDATE ? SET star = '?' WHERE id = '?' and user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $star, $photo->photo_id, $_SESSION['userid']));
 			$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 			if ($result===false) $error = true;
@@ -1182,8 +1184,8 @@ final class Photo {
 		$query  = Database::prepare(Database::get(), "
             SELECT p_u.public, p_a.album
                 FROM ? p_u
-                LEFT JOIN ? p_a ON p_u.photo_id = p_a.photo_id
-            WHERE p_u.photo_id = '?' LIMIT 1
+                LEFT JOIN ? p_a ON p_u.id = p_a.photo_user_id
+            WHERE p_u.id = '?' LIMIT 1
         ", array(LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $this->photoIDs));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
@@ -1258,7 +1260,7 @@ final class Photo {
 		$public = ($photo->public==0 ? 1 : 0);
 
 		// Set public
-		$query  = Database::prepare(Database::get(), "UPDATE ? SET public = '?' WHERE photo_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $public, $this->photoIDs));
+		$query  = Database::prepare(Database::get(), "UPDATE ? SET public = '?' WHERE id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $public, $this->photoIDs));
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		// Call plugins
@@ -1283,24 +1285,23 @@ final class Photo {
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
         // Set album
-//        $this->photoIDs.forEach(id) { // TODO: add support for array of photos
+        //$this->photoIDs.forEach(id) { // TODO: add support for array of photos
 
         $queries = array();
-        
+
         // Delete old album value
-        array_push($queries, Database::prepare(Database::get(), "DELETE FROM ? WHERE photo_id = '?' AND album_id = '?'", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $this->photoIDs, $oldAlbumID))); // Update when photo_id and OLD album_id already in database // TODO: fix
-                
+        array_push($queries, Database::prepare(Database::get(), "DELETE FROM ? WHERE photo_user_id = '?' AND album_id = '?'", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $this->photoIDs, $oldAlbumID))); // Update when photo_id and OLD album_id already in database
+
         // Insert new album value
-        array_push($queries, Database::prepare(Database::get(), "INSERT INTO ?  (photo_id, album_id) VALUES ('?', '?')", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $this->photoIDs, $albumID))); // Update when photo_id and OLD album_id already in database // TODO: fix
-        
+        array_push($queries, Database::prepare(Database::get(), "INSERT INTO ?  (photo_user_id, album_id) VALUES ('?', '?')", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $this->photoIDs, $albumID))); // Update when photo_id and OLD album_id already in database
+
         // Run both queries in one transaction
         $result = Database::executeTransaction(Database::get(), $queries, __METHOD__, __LINE__);
 
-        
- //           if ($result===false) {
- //               break
- //           }
- //       }
+        //    if ($result===false) {
+        //        break
+        //    }
+        //}
 
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
@@ -1327,7 +1328,7 @@ final class Photo {
 
 		// Check rights to set tags on photo
 		if ($_SESSION['role'] == 'user') {
-			$query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
+			$query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
 			$result   = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 			if ($result->num_rows == 0){
 				Log::error(Database::get(), __METHOD__, __LINE__, "User: ". $_SESSION['userid']. " tried to set tags for photo: ". $this->photoIDs );
@@ -1341,9 +1342,9 @@ final class Photo {
 
 		// Set tags
         if ($_SESSION['role'] == 'user') {
-            $query  = Database::prepare(Database::get(), "UPDATE ? SET tags = '?' WHERE photo_id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $tags, $this->photoIDs, $_SESSION['userid']));
+            $query  = Database::prepare(Database::get(), "UPDATE ? SET tags = '?' WHERE id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $tags, $this->photoIDs, $_SESSION['userid']));
         } else { // Admin can set tags for all photos
-            $query  = Database::prepare(Database::get(), "UPDATE ? SET tags = '?' WHERE photo_id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $tags, $this->photoIDs));
+            $query  = Database::prepare(Database::get(), "UPDATE ? SET tags = '?' WHERE id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $tags, $this->photoIDs));
         }
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
@@ -1371,6 +1372,7 @@ final class Photo {
 		$error = false;
 
 		// Get photos
+        // TODO: move duplication to lychee_photos_users
 		$query  = Database::prepare(Database::get(), "SELECT id, checksum FROM ? WHERE id IN (?)", array(LYCHEE_TABLE_PHOTOS, $this->photoIDs));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
@@ -1401,6 +1403,7 @@ final class Photo {
 	 * @return boolean Returns true when successful.
 	 */
 	public function delete() {
+        // TODO: move deletion to lychee_photos_users
 
 		// Check dependencies
 		Validator::required(isset($this->photoIDs), __METHOD__);

@@ -48,7 +48,7 @@ function view($path) { // TODO: rework so only photo id is needed and requested 
                         WHERE (p.url = '?' || p.thumbUrl = '?') && p_u.user_id = '?'
                     UNION
                     SELECT 1 FROM ? p
-                        JOIN ? p_a ON p.id = p_a.photo_id
+                        JOIN ? p_a ON p_u.id = p_a.photo_user_id
                         JOIN ? pr ON p_a.album_id = pr.album_id
                         WHERE (p.url = '?' || p.thumbUrl = '?') && pr.user_id = '?' && pr.view = 1
                     LIMIT 1
