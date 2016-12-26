@@ -9,37 +9,33 @@ final class Video {
 	private $videoIDs	= null;
 
 	public static $allowedMimeTypes = array(
+        // TODO: Switch to function used in view.php
 		# support Playback via MediaElement.js
-		'video/mp4' => '.mp4',
-		'video/ogg' => '.ogv',
-		'application/ogg' => '.ogv',
-		'video/webm' => '.webm',
-		'video/x-flv' => '.flv',
-		'video/x-ms-wmv' => '.wmv',
+		'mp4' => 'video/mp4',
+		'ogv' => 'video/ogg',
+		'webm' => 'video/webm',
+		'flv' => 'video/x-flv',
+		'wmv' => 'video/x-ms-wmv',
 
 		# support Download
-		'video/x-msvideo' => '.avi',
-		'video/quicktime' => '.mov',
-		'video/x-matroska' => '.mkv',
+        'wmv' => 'video/x-msvideo',
+        'avi' => 'video/x-msvideo',
+        'mov' => 'video/quicktime',
+        'mkv' => 'video/x-matroska'
 	);
 
 	protected static $finfo_mime = false;
 
 	public static function getMimeType($path) {
-		# create finfo resource if it doesn't exist
-		if ( ! self::$finfo_mime ) {
-			self::$finfo_mime = finfo_open(FILEINFO_MIME_TYPE);
-		}
-
 		if ( is_array($path) && isset($path['name']) ) {
 			$path = $path['name'];
 		}
 
 		# get mime type
-		$mime_type = finfo_file( self::$finfo_mime, $path );
+		$mime_type = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
 		# check if allowed
-		if ( ! isset(self::$allowedMimeTypes[$mime_type]) ) {
+		if ( !isset(self::$allowedMimeTypes[$mime_type]) ) {
 			return false;
 		}
 

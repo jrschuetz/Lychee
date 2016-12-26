@@ -115,6 +115,7 @@ final class Import {
 
 		// Parse path
 		if (!isset($path))           $path = LYCHEE_UPLOADS_IMPORT;
+        $path = escapeshellcmd($path); // Escape spaces in path
 		if (substr($path, -1)==='/') $path = substr($path, 0, -1);
 
 		if (is_dir($path)===false) {
