@@ -197,9 +197,10 @@ contextMenu.photo = function(photoID, e) {
 	// Notice for 'Move':
 	// fn must call basicContext.close() first,
 	// in order to keep the selection
+	let items
 
 	if (lychee.role == 'admin'){
-		let items = [
+		items = [
 			{ title: build.iconic('star') + 'Star', fn: () => photo.setStar([ photoID ]) },
 			{ title: build.iconic('tag') + 'Tags', fn: () => photo.editTags([ photoID ]) },
 			{ },
@@ -209,7 +210,7 @@ contextMenu.photo = function(photoID, e) {
 			{ title: build.iconic('trash') + 'Delete', fn: () => photo.delete([ photoID ]) }
 		]
 	} else if (lychee.role == 'user'){
-		let items = [
+		items = [
 			{ title: build.iconic('star') + 'Star', fn: () => photo.setStar([ photoID ]) },
 			{ title: build.iconic('tag') + 'Tags', fn: () => photo.editTags([ photoID]) },
 			{ },
