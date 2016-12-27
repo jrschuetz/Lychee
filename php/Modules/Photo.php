@@ -1285,23 +1285,23 @@ final class Photo {
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
         // Set album
-        //$this->photoIDs.forEach(id) { // TODO: add support for array of photos
+		foreach(explode(',', $this->photoIDs) as $id) { // TODO: add support for array of photos
 
-        $queries = array();
+			$queries = array();
 
-        // Delete old album value
-        array_push($queries, Database::prepare(Database::get(), "DELETE FROM ? WHERE photo_user_id = '?' AND album_id = '?'", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $this->photoIDs, $oldAlbumID))); // Update when photo_id and OLD album_id already in database
+			// Delete old album value
+			array_push($queries, Database::prepare(Database::get(), "DELETE FROM ? WHERE photo_user_id = '?' AND album_id = '?'", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $id, $oldAlbumID))); // Update when photo_id and OLD album_id already in database
 
-        // Insert new album value
-        array_push($queries, Database::prepare(Database::get(), "INSERT INTO ?  (photo_user_id, album_id) VALUES ('?', '?')", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $this->photoIDs, $albumID))); // Update when photo_id and OLD album_id already in database
+			// Insert new album value
+			array_push($queries, Database::prepare(Database::get(), "INSERT INTO ?  (photo_user_id, album_id) VALUES ('?', '?')", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $id, $albumID))); // Update when photo_id and OLD album_id already in database
 
-        // Run both queries in one transaction
-        $result = Database::executeTransaction(Database::get(), $queries, __METHOD__, __LINE__);
+			// Run both queries in one transaction
+			$result = Database::executeTransaction(Database::get(), $queries, __METHOD__, __LINE__);
 
-        //    if ($result===false) {
-        //        break
-        //    }
-        //}
+			if ($result===false) {
+				break;
+			}
+		}
 
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
