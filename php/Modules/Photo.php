@@ -1292,8 +1292,10 @@ final class Photo {
 			// Delete old album value
 			array_push($queries, Database::prepare(Database::get(), "DELETE FROM ? WHERE photo_user_id = '?' AND album_id = '?'", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $id, $oldAlbumID))); // Update when photo_id and OLD album_id already in database
 
-			// Insert new album value
-			array_push($queries, Database::prepare(Database::get(), "INSERT INTO ?  (photo_user_id, album_id) VALUES ('?', '?')", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $id, $albumID))); // Update when photo_id and OLD album_id already in database
+            if ($albumID!=='u') { // Move to unsorted doesn't need to be stored
+				// Insert new album value
+				array_push($queries, Database::prepare(Database::get(), "INSERT INTO ?  (photo_user_id, album_id) VALUES ('?', '?')", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $id, $albumID))); // Update when photo_id and OLD album_id already in database
+            }
 
 			// Run both queries in one transaction
 			$result = Database::executeTransaction(Database::get(), $queries, __METHOD__, __LINE__);

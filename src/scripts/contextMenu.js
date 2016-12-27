@@ -330,7 +330,7 @@ contextMenu.move = function(photoIDs, e) {
 			if (album.getID()!==null) {
 
 				items.unshift({ })
-				items.unshift({ title: 'Unsorted', fn: () => photo.setAlbum(photoIDs, 0, album.getID()) })
+				items.unshift({ title: 'Unsorted', fn: () => photo.setAlbum(photoIDs, 'u', album.getID()) })
 
 			}
 
