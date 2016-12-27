@@ -474,7 +474,11 @@ photo.setPublic = function(photoID, e) {
 
 	albums.refresh()
 
-	api.post('Photo::setPublic', { photoID }, function(data) {
+    let params = {
+		photoID
+	}
+
+	api.post('Photo::setPublic', params, function(data) {
 
 		if (data!==true) lychee.error(null, params, data)
 

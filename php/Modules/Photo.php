@@ -1137,7 +1137,7 @@ final class Photo {
 		$error = false;
 
 		// Get photos
-        $query  = Database::prepare(Database::get(), "SELECT photo_id, star FROM ? WHERE id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
+        $query  = Database::prepare(Database::get(), "SELECT id, star FROM ? WHERE id IN (?) AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs, $_SESSION['userid']));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
         if ($photos->num_rows == 0){
@@ -1151,7 +1151,7 @@ final class Photo {
 			$star = ($photo->star==0 ? 1 : 0);
 
 			// Set star // TODO: allow other users to star photo shared with them
-			$query  = Database::prepare(Database::get(), "UPDATE ? SET star = '?' WHERE id = '?' and user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $star, $photo->photo_id, $_SESSION['userid']));
+			$query  = Database::prepare(Database::get(), "UPDATE ? SET star = '?' WHERE id = '?' and user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $star, $photo->id, $_SESSION['userid']));
 			$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 			if ($result===false) $error = true;
@@ -1242,7 +1242,7 @@ final class Photo {
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
 		// Get public
-		$query  = Database::prepare(Database::get(), "SELECT public FROM ? WHERE photo_id = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs));
+		$query  = Database::prepare(Database::get(), "SELECT public FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		if ($photos===false) return false;
