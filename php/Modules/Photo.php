@@ -264,12 +264,13 @@ final class Photo {
         array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (id, url, type, width, height, size, iso, aperture, make, model, shutter, focal, takestamp, thumbUrl, checksum, medium) VALUES ('?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?')", $values));
 
         // Insert photo foreign key to photos_users
-        $values = array(LYCHEE_TABLE_PHOTOS_USERS, generateID(), $id, $_SESSION['userid'], $info['title'], $info['description'], $info['tags'], $public, $star);
+        $photo_user_id = generateID();
+        $values = array(LYCHEE_TABLE_PHOTOS_USERS, $photo_user_id, $id, $_SESSION['userid'], $info['title'], $info['description'], $info['tags'], $public, $star);
         array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (id, photo_id, user_id, title, description, tags, public, star) VALUES ('?', '?', '?', '?', '?', '?', '?', '?')", $values));
 
         // Insert photo foreign key to photos_albums (if album is set)
         if ($albumID !== null) {
-            $values = array(LYCHEE_TABLE_PHOTOS_ALBUMS, $id, $albumID);
+            $values = array(LYCHEE_TABLE_PHOTOS_ALBUMS, $photo_user_id, $albumID);
             array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (photo_user_id, album_id) VALUES ('?', '?')", $values));
         }
 
