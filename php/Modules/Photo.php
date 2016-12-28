@@ -290,8 +290,18 @@ final class Photo {
 	private function exists($checksum, $photoID = null) {
 
 		// Exclude $photoID from select when $photoID is set
-		if (isset($photoID)) $query = Database::prepare(Database::get(), "SELECT id, url, thumbUrl, medium FROM ? WHERE checksum = '?' AND id <> '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS, $checksum, $photoID));
-		else                 $query = Database::prepare(Database::get(), "SELECT id, url, thumbUrl, medium FROM ? WHERE checksum = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS, $checksum));
+		if (isset($photoID)) $query = Database::prepare(Database::get(), "
+            SELECT p_u.id, p_u.photo_id, p.url, p.thumbUrl, p.medium FROM ? p
+                JOIN ? p_u
+                    ON p.id = p_u.photo_id
+            WHERE p.checksum = '?' AND p_u.id <> '?' LIMIT 1
+        ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $checksum, $photoID));
+		else                 $query = Database::prepare(Database::get(), "
+            SELECT p_u.id, p_u.photo_id, p.url, p.thumbUrl, p.medium FROM ? p
+                JOIN ? p_u
+                    ON p.id = p_u.photo_id
+            WHERE p.checksum = '?' LIMIT 1
+        ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $checksum));
 
 		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
@@ -1408,9 +1418,8 @@ final class Photo {
 	 * @return boolean Returns true when successful.
 	 */
 	public function delete() {
-        // TODO: move deletion to lychee_photos_users
 
-		// Check dependencies
+        // Check dependencies
 		Validator::required(isset($this->photoIDs), __METHOD__);
 
 		// Call plugins
@@ -1420,7 +1429,11 @@ final class Photo {
 		$error = false;
 
 		// Get photos
-		$query  = Database::prepare(Database::get(), "SELECT id, url, thumbUrl, checksum FROM ? WHERE id IN (?)", array(LYCHEE_TABLE_PHOTOS, $this->photoIDs));
+		$query  = Database::prepare(Database::get(), "
+            SELECT p_u.id, p_u.photo_id, p.url, p.thumbUrl, p.checksum FROM ? p
+                JOIN ? p_u ON p.id = p_u.photo_id
+            WHERE p_u.id IN (?)
+        ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		if ($photos===false) return false;
@@ -1477,10 +1490,14 @@ final class Photo {
 					Log::error(Database::get(), __METHOD__, __LINE__, 'Could not delete video in uploads/video/');
 					$error = true;
 				}
+
+				// Delete db entry
+    	        $query  = Database::prepare(Database::get(), "DELETE FROM ? WHERE id = '?'", array(LYCHEE_TABLE_PHOTOS, $photo->photo_id));
+				$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 			}
 
 			// Delete db entry
-			$query  = Database::prepare(Database::get(), "DELETE FROM ? WHERE id = '?'", array(LYCHEE_TABLE_PHOTOS, $photo->id));
+			$query  = Database::prepare(Database::get(), "DELETE FROM ? WHERE id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $photo->id));
 			$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 			if ($result===false) $error = true;

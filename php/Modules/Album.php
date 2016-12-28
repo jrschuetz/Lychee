@@ -748,7 +748,12 @@ final class Album {
 		$photoIDs = array();
 
 		// Execute query
-		$query  = Database::prepare(Database::get(), "SELECT id FROM ? WHERE album IN (?)", array(LYCHEE_TABLE_PHOTOS, $this->albumIDs));
+		$query  = Database::prepare(Database::get(), "
+            SELECT id FROM ? p_u
+                JOIN ? p_a
+                    ON p_u.id = p_a.photo_user_id
+            WHERE p_a.album_id IN (?)
+        ", array(LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $this->albumIDs));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		if ($photos===false) return false;
