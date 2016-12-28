@@ -265,14 +265,14 @@ final class Photo {
 
         // Insert photo foreign key to photos_users
         $photo_user_id = generateID();
-        $values = array(LYCHEE_TABLE_PHOTOS_USERS, $photo_user_id, $id, $_SESSION['userid'], $info['title'], $info['description'], $info['tags'], $public, $star);
-        array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (id, photo_id, user_id, title, description, tags, public, star) VALUES ('?', '?', '?', '?', '?', '?', '?', '?')", $values));
 
-        // Insert photo foreign key to photos_albums (if album is set)
-        if ($albumID !== null) {
-            $values = array(LYCHEE_TABLE_PHOTOS_ALBUMS, $photo_user_id, $albumID);
-            array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (photo_user_id, album_id) VALUES ('?', '?')", $values));
-        }
+		if (isset($albumID)) {
+			$values = array(LYCHEE_TABLE_PHOTOS_USERS, $photo_user_id, $id, $_SESSION['userid'], $albumID, $info['title'], $info['description'], $info['tags'], $public, $star);
+			array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (id, photo_id, user_id, album_id, title, description, tags, public, star) VALUES ('?', '?', '?', '?', '?', '?', '?', '?', '?')", $values));
+		} else {
+			$values = array(LYCHEE_TABLE_PHOTOS_USERS, $photo_user_id, $id, $_SESSION['userid'], $info['title'], $info['description'], $info['tags'], $public, $star);
+			array_push($queries, Database::prepare(Database::get(), "INSERT INTO ? (id, photo_id, user_id, album_id, title, description, tags, public, star) VALUES ('?', '?', '?', NULL, '?', '?', '?', '?', '?')", $values));
+		}
 
         // Run queries in one transaction
         $result = Database::executeTransaction(Database::get(), $queries, __METHOD__, __LINE__);
@@ -744,34 +744,28 @@ final class Photo {
                 SELECT * FROM ? p
                     LEFT JOIN ? p_u
                         ON p.id = p_u.photo_id
-                    LEFT JOIN ? p_a
-                        on p_u.id = p_a.photo_user_id
                 WHERE p_u.user_id = '?' AND p_u.id = '?'
-                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $_SESSION['userid'], $this->photoIDs));
+                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $_SESSION['userid'], $this->photoIDs));
             $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
         } elseif ($_SESSION['role'] == 'user' && $albumID != 'false') {
             $query = Database::prepare(Database::get(), "
-                    SELECT p.*, p_u.*, p_a.*, a.public FROM ? p
+                    SELECT p.*, p_u.*, a.public FROM ? p
                         JOIN ? p_u
                             ON p.id = p_u.photo_id
-                        JOIN ? p_a
-                            ON p_u.id = p_a.photo_user_id
                         JOIN ? a
-                            ON a.id = p_a.album_id
-                        WHERE p_u.id = '?' AND p_a.album_id = '?' AND p_u.user_id = '?'
+                            ON a.id = p_u.album_id
+                        WHERE p_u.id = '?' AND p_u.album_id = '?' AND p_u.user_id = '?'
                     UNION
-                    SELECT p.*, p_u.*, p_a.*, a.public FROM ? p
+                    SELECT p.*, p_u.*, a.public FROM ? p
                         JOIN ? p_u
                             ON p.id = p_u.photo_id
-                        JOIN ? p_a
-                            ON p_u.id = p_a.photo_user_id
                         JOIN ? pr
-                            ON p_a.album_id = pr.album_id
+                            ON p_u.album_id = pr.album_id
                         JOIN ? a
-                            ON a.id = p_a.album_id
+                            ON a.id = p_u.album_id
                         WHERE p_u.id = '?' AND pr.user_id = '?' AND pr.view = 1
                     LIMIT 1
-                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, LYCHEE_TABLE_ALBUMS, $this->photoIDs, $albumID, $_SESSION['userid'], LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, LYCHEE_TABLE_PRIVILEGES, LYCHEE_TABLE_ALBUMS, $this->photoIDs, $_SESSION['userid']));
+                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_ALBUMS, $this->photoIDs, $albumID, $_SESSION['userid'], LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PRIVILEGES, LYCHEE_TABLE_ALBUMS, $this->photoIDs, $_SESSION['userid']));
                 $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
         } else { // Admin sees all pictures // TODO: provide setting to restrict view to own photos only
         	// Get photo
@@ -779,10 +773,8 @@ final class Photo {
                 SELECT * FROM ? p
                     LEFT JOIN ? p_u
                         ON p.id = p_u.photo_id
-                    LEFT JOIN ? p_a
-                        on p_u.id = p_a.photo_user_id
                 WHERE p_u.id = '?' LIMIT 1
-                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $this->photoIDs));
+                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs));
             $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 		}
 
@@ -1192,12 +1184,7 @@ final class Photo {
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
 		// Get photo
-		$query  = Database::prepare(Database::get(), "
-            SELECT p_u.public, p_a.album
-                FROM ? p_u
-                LEFT JOIN ? p_a ON p_u.id = p_a.photo_user_id
-            WHERE p_u.id = '?' LIMIT 1
-        ", array(LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PHOTOS_ALBUMS, $this->photoIDs));
+		$query  = Database::prepare(Database::get(), "SELECT public, album_id FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs));
 		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		if ($photos===false) return 0;
@@ -1298,18 +1285,15 @@ final class Photo {
         // Set album
 		foreach(explode(',', $this->photoIDs) as $id) { // TODO: add support for array of photos
 
-			$queries = array();
-
-			// Delete old album value
-			array_push($queries, Database::prepare(Database::get(), "DELETE FROM ? WHERE photo_user_id = '?' AND album_id = '?'", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $id, $oldAlbumID))); // Update when photo_id and OLD album_id already in database
-
-            if ($albumID!=='u') { // Move to unsorted doesn't need to be stored
-				// Insert new album value
-				array_push($queries, Database::prepare(Database::get(), "INSERT INTO ?  (photo_user_id, album_id) VALUES ('?', '?')", array(LYCHEE_TABLE_PHOTOS_ALBUMS, $id, $albumID))); // Update when photo_id and OLD album_id already in database
+			// Update album value
+            if ($albumID!=='u') {
+				$query = Database::prepare(Database::get(), "UPDATE ? SET album_id = ? WHERE id = ?", array(LYCHEE_TABLE_PHOTOS_USERS, $albumID, $id));
+            } else { // Move to unsorted
+				$query = Database::prepare(Database::get(), "UPDATE ? SET album_id = NULL WHERE id = ?", array(LYCHEE_TABLE_PHOTOS_USERS, $id));
             }
 
 			// Run both queries in one transaction
-			$result = Database::executeTransaction(Database::get(), $queries, __METHOD__, __LINE__);
+			$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 			if ($result===false) {
 				break;

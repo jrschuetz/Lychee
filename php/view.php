@@ -48,11 +48,11 @@ function view($path) { // TODO: rework so only photo id is needed and requested 
                         WHERE (p.url = '?' || p.thumbUrl = '?') && p_u.user_id = '?'
                     UNION
                     SELECT 1 FROM ? p
-                        JOIN ? p_a ON p_u.id = p_a.photo_user_id
-                        JOIN ? pr ON p_a.album_id = pr.album_id
+                        JOIN ? p_u ON p_u.photo_id = p.id
+                        JOIN ? pr ON p_u.album_id = pr.album_id
                         WHERE (p.url = '?' || p.thumbUrl = '?') && pr.user_id = '?' && pr.view = 1
                     LIMIT 1
-                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $filename, $filename, $_SESSION['userid'], LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $filename, $filename, $_SESSION['userid']));               
+                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $filename, $filename, $_SESSION['userid'], LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PRIVILEGES, $filename, $filename, $_SESSION['userid']));
             }
     		$allowed = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 

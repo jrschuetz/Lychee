@@ -282,35 +282,6 @@ final class Database {
         $result = self::execute($connection, $query, __METHOD__, __LINE__);
         if ($result===false) return false;
 
-        // Check if photos_users table exists
-		$exist  = self::prepare($connection, 'SELECT * FROM ? LIMIT 0', array(LYCHEE_TABLE_PHOTOS_ALBUMS));
-		$result = self::execute($connection, $exist, __METHOD__, __LINE__);
-		if ($result===false) {
-			// Read file
-			$file  = __DIR__ . '/../database/photos_albums_table.sql';
-			$query = @file_get_contents($file);
-			if ($query===false) {
-				Log::error($connection, __METHOD__, __LINE__, 'Could not load query for lychee_photos_albums');
-				return false;
-			}
-			// Create table
-			$query  = self::prepare($connection, $query, array(LYCHEE_TABLE_PHOTOS_ALBUMS));
-			$result = self::execute($connection, $query, __METHOD__, __LINE__);
-			if ($result===false) return false;
-		}
-
-        // Add the photos_albums table connections
-        $file  = __DIR__ . '/../database/photos_albums_table_connect.sql';
-        $query = @file_get_contents($file);
-        if ($query===false) {
-        	Log::error($connection, __METHOD__, __LINE__, 'Could not load query for lychee_photos_albums_table_connect');
-			return false;
-        }
-        // Create connections
-        $query  = self::prepare($connection, $query, array(LYCHEE_TABLE_PHOTOS_ALBUMS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_ALBUMS));
-        $result = self::execute($connection, $query, __METHOD__, __LINE__);
-        if ($result===false) return false;
-
 		return true;
 	}
 	/**

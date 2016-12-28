@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS `?` (
     `id` bigint(14) unsigned NOT NULL,
     `photo_id` bigint(14) unsigned NOT NULL,
     `user_id`  int(11) NOT NULL,
+    `album_id` bigint(20) unsigned DEFAULT NULL,
     `title` varchar(100) NOT NULL DEFAULT '',
     `description` varchar(1000) DEFAULT '',
     `tags` varchar(1000) NOT NULL DEFAULT '',
