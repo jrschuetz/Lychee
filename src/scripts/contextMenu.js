@@ -335,6 +335,10 @@ contextMenu.move = function(photoIDs, e) {
 
 			}
 
+            // Show 'Add album'
+            items.unshift({ })
+            items.unshift({ title: 'New Album', fn: album.add }) // TODO: add photo after creating album
+
 		}
 
 		basicContext.show(items, e.originalEvent, contextMenu.close)
