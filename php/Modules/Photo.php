@@ -1285,20 +1285,26 @@ final class Photo {
         // Set album
 		foreach(explode(',', $this->photoIDs) as $id) { // TODO: add support for array of photos
 
-			// Update album value
-            if ($albumID!=='u') {
-				$query = Database::prepare(Database::get(), "UPDATE ? SET album_id = ? WHERE id = ?", array(LYCHEE_TABLE_PHOTOS_USERS, $albumID, $id));
-            } else { // Move to unsorted
-				$query = Database::prepare(Database::get(), "UPDATE ? SET album_id = NULL WHERE id = ?", array(LYCHEE_TABLE_PHOTOS_USERS, $id));
-            }
+            // Duplicate instead of move if photo not owned by user
+            $query  = Database::prepare(Database::get(), "SELECT * FROM ? WHERE id = '?' AND user_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $id, $_SESSION['userid']));
+            $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
-			// Run both queries in one transaction
-			$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-
-			if ($result===false) {
-				break;
+            if ($result->num_rows === 0) { // Skip photo that isn't owned by user
+                continue;
 			}
-		}
+
+            // Update album value (only allowed on photos owned by user)
+            if ($albumID!=='u') {
+                $query = Database::prepare(Database::get(), "UPDATE ? SET album_id = ? WHERE id = ?", array(LYCHEE_TABLE_PHOTOS_USERS, $albumID, $id));
+            } else { // Move to unsorted
+                $query = Database::prepare(Database::get(), "UPDATE ? SET album_id = NULL WHERE id = ?", array(LYCHEE_TABLE_PHOTOS_USERS, $id));
+            }
+            // Run query
+            $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+            if ($result===false) {
+                break;
+            }
+ 		}
 
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
