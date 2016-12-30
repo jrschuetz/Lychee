@@ -34,13 +34,13 @@ final class Albums {
 		// Albums query
 		if ($public===false) {
             if ($_SESSION['role'] === 'admin') {
-                $query = Database::prepare(Database::get(), "SELECT id, title, public, sysstamp, password FROM ? " . Settings::get()['sortingAlbums'], array(LYCHEE_TABLE_ALBUMS));
+                $query = Database::prepare(Database::get(), "SELECT id, user_id, title, public, sysstamp, password FROM ? " . Settings::get()['sortingAlbums'], array(LYCHEE_TABLE_ALBUMS));
             } else {
-                $query = Database::prepare(Database::get(), "SELECT id, title, public, sysstamp, password FROM ? WHERE user_id = ? UNION SELECT a.id, a.title, a.public, a.sysstamp, a.password FROM ? a JOIN ? p on ( a.id = p.album_id) WHERE p.user_id = ? AND p.view = 1 " . Settings::get()['sortingAlbums'], array(LYCHEE_TABLE_ALBUMS,  $_SESSION['userid'], LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $_SESSION['userid']));
+                $query = Database::prepare(Database::get(), "SELECT id, user_id, title, public, sysstamp, password FROM ? WHERE user_id = ? UNION SELECT a.id, a.user_id, a.title, a.public, a.sysstamp, a.password FROM ? a JOIN ? p on ( a.id = p.album_id) WHERE p.user_id = ? AND p.view = 1 " . Settings::get()['sortingAlbums'], array(LYCHEE_TABLE_ALBUMS,  $_SESSION['userid'], LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $_SESSION['userid']));
             }
         }
 		else {
-            $query = Database::prepare(Database::get(), 'SELECT id, title, public, sysstamp, password FROM ? WHERE public = 1 AND visible <> 0 ' . Settings::get()['sortingAlbums'], array(LYCHEE_TABLE_ALBUMS));
+            $query = Database::prepare(Database::get(), 'SELECT id, user_id, title, public, sysstamp, password FROM ? WHERE public = 1 AND visible <> 0 ' . Settings::get()['sortingAlbums'], array(LYCHEE_TABLE_ALBUMS));
         }
 
 		// Execute query
