@@ -1429,15 +1429,17 @@ final class Photo {
 		if ($photos===false) return false;
 
 		// Check rights to delete these photos from album
-		if ($_SESSION['role'] === 'user' && $photo['album_id'] !== null){
+		if ($_SESSION['role'] === 'user') {
 			$photo = $photos->fetch_assoc();
 			$photos->data_seek(0);
-			$query = Database::prepare(Database::get(), "SELECT * FROM ? a LEFT JOIN ? pr ON a.id = pr.album_id WHERE a.id = '?' AND (a.user_id = '?' OR (pr.user_id = '?' AND pr.erase = 1))", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $photo['album_id'], $_SESSION['userid'], $_SESSION['userid']));
-			$result   = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-			if ($result->num_rows === 0){
-				Log::error(Database::get(), __METHOD__, __LINE__, "User: " . $_SESSION['userid'] . " tried to delete from album: ". $photo['album_id'] );
-				return false;
-			}
+            if ($photo['album_id'] !== null) {
+    			$query = Database::prepare(Database::get(), "SELECT * FROM ? a LEFT JOIN ? pr ON a.id = pr.album_id WHERE a.id = '?' AND (a.user_id = '?' OR (pr.user_id = '?' AND pr.erase = 1))", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $photo['album_id'], $_SESSION['userid'], $_SESSION['userid']));
+    			$result   = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+    			if ($result->num_rows === 0){
+    				Log::error(Database::get(), __METHOD__, __LINE__, "User: " . $_SESSION['userid'] . " tried to delete from album: ". $photo['album_id'] );
+    				return false;
+    			}
+            }
 		}
 
 		// For each photo
