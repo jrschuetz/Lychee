@@ -7,6 +7,7 @@ use Lychee\Modules\Photo;
 use Lychee\Modules\Response;
 use Lychee\Modules\Session;
 use Lychee\Modules\Settings;
+use Lychee\Modules\Users;
 use Lychee\Modules\Validator;
 use Lychee\Modules\Video;
 
