@@ -74,7 +74,7 @@ final class Album {
 		if (isset($data['downloadable'])) $album['downloadable'] = $data['downloadable'];
 
         // Add if album is editable by user (if owned by user)
-        if ($_SESSION['role'] === 'admin' || $data['user_id'] === $_SESSION['userid']) {
+        if ($_SESSION['role'] === 'admin' || ($_SESSION['role'] === 'user' && ($data['user_id'] === $_SESSION['userid'] || in_array($data['id'], array('s', 'f', 'r', 'u'))))) {
             $album['editable'] = true;
         } else {
             $album['editable'] = false;
@@ -171,7 +171,10 @@ final class Album {
 				break;
 
 			case 'u':
-				$return['public'] = '0';
+				$return['public']   = '0';
+				$return['editable'] = '1';
+				$return['erase'] = '1';
+				$return['upload'] = '1';
                 
                 if ($_SESSION['role'] === 'admin') {
                     $query = Database::prepare(Database::get(), "

@@ -145,11 +145,11 @@ header.setMode = function(mode) {
 				$('#button_trash_album').show();
 			} else {
 				$('#button_info_album, #button_share_album').show();
-                if (album.json.editable==='1')  $('#button_trash_album').show() // Only owner can delete album // TODO: give user option to unshare album
+                if (album.json.editable===true) $('#button_trash_album').show() // Only owner can delete album // TODO: give user option to unshare album
                 else                            $('#button_trash_album').hide()
 
-                if (album.json.upload === '1')  $('#button_add_album').show()
-                else                            $('#button_add_album').hide()
+                if (album.json.upload === '1' || album.json.editable===true) $('#button_add_album').show()
+                else                                                         $('#button_add_album').hide()
 			}
 
 			return true
@@ -160,6 +160,9 @@ header.setMode = function(mode) {
 			header.dom().addClass('header--view')
 			header.dom('.header__toolbar--public, .header__toolbar--albums, .header__toolbar--album').removeClass('header__toolbar--visible')
 			header.dom('.header__toolbar--photo').addClass('header__toolbar--visible')
+
+            if (album.json.erase==='1' || album.json.editable===true || albumID==='u')  $('#button_move').show() // Only owner can move photo out of album // TODO: give user option to duplicate photo to own album/unsorted
+            else                         $('#button_move').hide()
 
 			return true
 			break
