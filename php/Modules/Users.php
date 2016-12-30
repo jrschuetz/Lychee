@@ -119,8 +119,6 @@ final class Users {
 
       $query = Database::prepare(Database::get(), "SELECT a.id, a.title, p.view, p.upload, p.erase FROM ? a LEFT JOIN ? p ON a.id = p.album_id AND p.user_id = ?", array(LYCHEE_TABLE_ALBUMS, LYCHEE_TABLE_PRIVILEGES, $userid));
 
-      Log::error(Database::get(), __METHOD__, __LINE__, "test" . $query);
-
       $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
       if(!$result){
           Log::error(Database::get(), __METHOD__, __LINE__, "Failed to get privileges");
@@ -149,8 +147,6 @@ final class Users {
 
       // TODO: remove if all rights are set to 0
       $query = Database::prepare(Database::get(), "INSERT INTO ? (`user_id`, `album_id`, `?`) VALUES ('?', '?','?') ON DUPLICATE KEY UPDATE `?`='?';", array(LYCHEE_TABLE_PRIVILEGES, $field, $userid, $albumid, $state, $field, $state));
-
-      Log::error(Database::get(), __METHOD__, __LINE__, "test" . $query);
 
       $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
       if(!$result){
