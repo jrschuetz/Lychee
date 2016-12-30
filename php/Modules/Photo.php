@@ -737,8 +737,8 @@ final class Photo {
 		
 		// First check if the user has rights to view photo
 		$query = '';
-		if ($_SESSION['role'] == 'user' && in_array( $albumID,  array('s', 'f', 'r', 'u'))) { // Load photo that is in a smart album
-
+        
+     if ($_SESSION['role'] == 'user' && in_array( $albumID,  array('s', 'f', 'r', 'u'))) { // Load photo that is in a smart album
             // TODO: fix overrides of 'id' field
             $query = Database::prepare(Database::get(), "
                 SELECT * FROM ? p
@@ -1207,7 +1207,7 @@ final class Photo {
 		} else {
 
 			// Check if album public
-			$album = new Album($photo->album);
+			$album = new Album($photo->album_id);
 			$agP   = $album->getPublic();
 			$acP   = $album->checkPassword($password);
 

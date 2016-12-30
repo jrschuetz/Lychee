@@ -184,7 +184,10 @@ final class Album {
 			default:
                 $query = '';
 
-                if ($_SESSION['role'] === 'admin') {
+                if ((!isset($_SESSION['login']) || $_SESSION['login'] === false) || !isset($_SESSION['identifier']) || !isset($_SESSION['role'])) { // Public
+					$query  = Database::prepare(Database::get(), "SELECT * FROM ? WHERE id = '?' AND public = 1 LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
+                    $albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+                } elseif ($_SESSION['role'] === 'admin') {
 					$query  = Database::prepare(Database::get(), "SELECT * FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
                     $albums = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
                 } else {
@@ -497,7 +500,7 @@ final class Album {
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
-		if ($this->albumIDs==='u'||$this->albumIDs==='s'||$this->albumIDs==='f') return false;
+		if ($this->albumIDs==='u' || $this->albumIDs==='s' || $this->albumIDs==='f') return false;
 
 		// Execute query
 		$query  = Database::prepare(Database::get(), "SELECT public FROM ? WHERE id = '?' LIMIT 1", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));

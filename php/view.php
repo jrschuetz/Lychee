@@ -20,11 +20,16 @@ if (isset($_GET['file'])) {
 }
 
 function view($path) { // TODO: rework so only photo id is needed and requested filesize?
+
+    $file = LYCHEE_UPLOADS . substr($path, 8); // TODO: remove uploads/ part from all html code so removal here is no longer needed
+    $file = realpath($file);
+
+	// Check if user can access file
+	$filename = basename($file); // Get filename
+	$filename = str_replace('@2x', '', $filename); // Remove @2x from big thumb url
+    
     // Check if user is logged in
 	if ((isset($_SESSION['login'])&&$_SESSION['login']===true)&&(isset($_SESSION['identifier'])&&$_SESSION['identifier']===Settings::get()['identifier']) && isset($_SESSION['role'])) {
-        
-        $file = LYCHEE_UPLOADS . substr($path, 8); // TODO: remove uploads/ part from all html code so removal here is no longer needed
-        $file = realpath($file);
 
         // Check if path exists
         if ($file === false) {
@@ -34,29 +39,28 @@ function view($path) { // TODO: rework so only photo id is needed and requested 
         
         // Check if requested path is inside configured upload folder
         if (strcmp($file,  realpath(LYCHEE_UPLOADS)) > 0 ) {
-            // Check if user can access file
-            $filename = basename($file); // Get filename
-            $filename = str_replace('@2x', '', $filename); // Remove @2x from big thumb url
-    
+
             if ($_SESSION['role'] === 'admin') {
-                $query  = Database::prepare(Database::get(), "SELECT 1 FROM ? WHERE url = '?' || thumbUrl = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS, $filename, $filename));
+                $query  = Database::prepare(Database::get(), "SELECT 1 FROM ? WHERE url = '?' OR thumbUrl = '?' LIMIT 1", array(LYCHEE_TABLE_PHOTOS, $filename, $filename));
             } else {
                 $query  = Database::prepare(Database::get(), "
                     SELECT 1 FROM ? p
                         JOIN ? p_u
                             ON p.id = p_u.photo_id
-                        WHERE (p.url = '?' || p.thumbUrl = '?') && p_u.user_id = '?'
+                        WHERE (p.url = '?' OR p.thumbUrl = '?') AND (p_u.user_id = '?' OR p_u.public = 1)
                     UNION
                     SELECT 1 FROM ? p
                         JOIN ? p_u ON p_u.photo_id = p.id
-                        JOIN ? pr ON p_u.album_id = pr.album_id
-                        WHERE (p.url = '?' || p.thumbUrl = '?') && pr.user_id = '?' && pr.view = 1
+                        LEFT JOIN ? pr ON p_u.album_id = pr.album_id
+                        JOIN ? a ON a.id = p_u.album_id
+                        WHERE (p.url = '?' OR p.thumbUrl = '?') AND ((pr.user_id = '?' && pr.view = 1) OR a.public = 1)
                     LIMIT 1
-                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $filename, $filename, $_SESSION['userid'], LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PRIVILEGES, $filename, $filename, $_SESSION['userid']));
+                ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $filename, $filename, $_SESSION['userid'], LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PRIVILEGES, LYCHEE_TABLE_ALBUMS, $filename, $filename, $_SESSION['userid']));
             }
+            
     		$allowed = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
-    		if ($allowed->num_rows === 0) { // User has no priviliges to access file
+    		if ($allowed->num_rows === 0) { // User has no privileges to access file
                Log::error(Database::get(), __METHOD__, __LINE__, 'User ' . $_SESSION['userid'] . ' tried to access photo it doesn\'t have access to: ' . $file);
                die("Access denied");
             }
@@ -69,7 +73,30 @@ function view($path) { // TODO: rework so only photo id is needed and requested 
             die("Access denied");
         }
     } else { // Guest
-        exit();
+        $query = Database::prepare(Database::get(), "
+                SELECT 1 FROM ? p
+                    JOIN ? p_u
+                        ON p.id = p_u.photo_id
+                    WHERE (p.url = '?' OR p.thumbUrl = '?') AND p_u.public = 1
+                UNION
+                SELECT 1 FROM ? p
+                    JOIN ? p_u ON p_u.photo_id = p.id
+                    LEFT JOIN ? pr ON p_u.album_id = pr.album_id
+                    JOIN ? a ON  p_u.album_id = a.id
+                    WHERE (p.url = '?' OR p.thumbUrl = '?') AND (pr.view = 1 OR a.public = 1)
+                LIMIT 1
+            ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $filename, $filename, LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, LYCHEE_TABLE_PRIVILEGES, LYCHEE_TABLE_ALBUMS, $filename, $filename));
+
+        $allowed = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
+    	if ($allowed->num_rows === 0) { // Guest has no privileges to access file
+           Log::error(Database::get(), __METHOD__, __LINE__, 'Guest visitor tried to access photo it doesn\'t have access to: ' . $file);
+           die("Access denied");
+        }
+
+        header("Content-length: ". filesize($file));
+        header("Content-type: ". get_mime_type($file));
+        readfile($file);
     }
 }
 

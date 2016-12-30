@@ -8,7 +8,7 @@ function getGraphHeader($photoID) {
 	$photo = new Photo($photoID);
 	if ($photo->getPublic('')===false) return false;
 
-	$query  = Database::prepare(Database::get(), "SELECT title, description, url, medium FROM ? WHERE id = '?'", array(LYCHEE_TABLE_PHOTOS, $photoID));
+	$query  = Database::prepare(Database::get(), "SELECT p_u.title, p_u.description, p.url, p.medium FROM ? p JOIN ? p_u ON p.id = p_u.photo_id WHERE p_u.id = '?'", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $photoID));
 	$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 	if ($result===false) return false;
