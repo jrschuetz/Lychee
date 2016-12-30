@@ -60,9 +60,10 @@ final class Album {
 		$album = null;
 
 		// Set unchanged attributes
-		$album['id']     = $data['id'];
-		$album['title']  = $data['title'];
-		$album['public'] = $data['public'];
+		$album['id']      = $data['id'];
+		$album['title']   = $data['title'];
+		$album['public']  = $data['public'];
+		$album['user_id'] = $data['user_id'];
 
 		// Additional attributes
 		// Only part of $album when available

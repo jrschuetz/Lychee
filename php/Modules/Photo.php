@@ -1414,7 +1414,7 @@ final class Photo {
 
 		// Get photos
 		$query  = Database::prepare(Database::get(), "
-            SELECT p_u.id, p_u.photo_id, p.url, p.thumbUrl, p.checksum FROM ? p
+            SELECT p_u.id, p_u.photo_id, p_u.album_id, p.url, p.thumbUrl, p.checksum FROM ? p
                 JOIN ? p_u ON p.id = p_u.photo_id
             WHERE p_u.id IN (?)
         ", array(LYCHEE_TABLE_PHOTOS, LYCHEE_TABLE_PHOTOS_USERS, $this->photoIDs));
@@ -1423,13 +1423,13 @@ final class Photo {
 		if ($photos===false) return false;
 
 		// Check rights to delete these photos
-		if ($_SESSION['role'] == 'user'){
+		if ($_SESSION['role'] === 'user'){
 			$photo = $photos->fetch_assoc();
 			$photos->data_seek(0);
-			$query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE album_id=? AND user_id=? AND erase=1", array(LYCHEE_TABLE_PRIVILEGES, $photo['album'], $_SESSION['userid']));
+			$query = Database::prepare(Database::get(), "SELECT * FROM ? WHERE album_id = '?' AND user_id = '?' AND erase = 1", array(LYCHEE_TABLE_PRIVILEGES, $photo['album_id'], $_SESSION['userid']));
 			$result   = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-			if ($result->num_rows == 0){
-				Log::error(Database::get(), __METHOD__, __LINE__, "User: ". $_SESSION['userid']. " tried to delete from album: ". $photo['album'] );
+			if ($result->num_rows === 0){
+				Log::error(Database::get(), __METHOD__, __LINE__, "User: " . $_SESSION['userid'] . " tried to delete from album: ". $photo['album'] );
 				return false;
 			}
 		}
