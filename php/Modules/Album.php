@@ -69,7 +69,16 @@ final class Album {
 		// Only part of $album when available
 		if (isset($data['description']))  $album['description'] = $data['description'];
 		if (isset($data['visible']))      $album['visible'] = $data['visible'];
+		if (isset($data['erase']))        $album['erase'] = $data['erase'];
+		if (isset($data['upload']))       $album['upload'] = $data['upload'];
 		if (isset($data['downloadable'])) $album['downloadable'] = $data['downloadable'];
+
+        // Add if album is editable by user (if owned by user)
+        if ($_SESSION['role'] === 'admin' || $data['user_id'] === $_SESSION['userid']) {
+            $album['editable'] = true;
+        } else {
+            $album['editable'] = false;
+        }
 
 		// Parse date
 		$album['sysdate'] = strftime('%B %Y', $data['sysstamp']);
@@ -263,13 +272,6 @@ final class Album {
 
 		$return['id']  = $this->albumIDs;
 		$return['num'] = $photos->num_rows;
-
-        // Add if album is editable by user (if owned by user)
-        if ($_SESSION['role'] === 'admin' || $return['user_id'] === $_SESSION['userid']) {
-            $return['editable'] = true;
-        } else {
-            $return['editable'] = false;
-        }
 
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
@@ -746,6 +748,14 @@ final class Album {
 
 		// Init vars
 		$photoIDs = array();
+
+		// Check if user is trying to delete album shared with him
+        if ($_SESSION['role'] === 'user') {
+            $query  = Database::prepare(Database::get(), "SELECT * FROM ? WHERE user_id <> '?' AND id IN (?)", array(LYCHEE_TABLE_ALBUM, $_SESSION['userid'], $this->albumIDs));
+			$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
+            if ($result===false) return false;
+        }
 
 		// Execute query
 		$query  = Database::prepare(Database::get(), "SELECT id FROM ? p_u WHERE p_u.album_id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $this->albumIDs));

@@ -120,17 +120,6 @@ header.setMode = function(mode) {
 			header.dom('.header__toolbar--public, .header__toolbar--album, .header__toolbar--photo').removeClass('header__toolbar--visible')
 			header.dom('.header__toolbar--albums').addClass('header__toolbar--visible')
 
-      // Remove add button if user
-      try{
-        var role = localStorage.getItem('lychee_role');
-        if(role === 'user'){
-          $('#tools_albums .button_add').hide();
-        }
-      }catch(err){}
-
-
-
-
 			return true
 			break
 
@@ -150,35 +139,18 @@ header.setMode = function(mode) {
 			if (lychee.publicMode===true && album.json.downloadable==='0') $('#button_archive').hide()
 
 			if (albumID==='s' || albumID==='f' || albumID==='r') {
-				$('#button_info_album, #button_trash_album, #button_share_album').hide()
+				$('#button_info_album, #button_trash_album, #button_share_album').hide();
 			} else if (albumID==='u') {
-				$('#button_info_album, #button_share_album').hide()
-				$('#button_trash_album').show()
+				$('#button_info_album, #button_share_album').hide();
+				$('#button_trash_album').show();
 			} else {
-				$('#button_info_album, #button_trash_album, #button_share_album').show()
+				$('#button_info_album, #button_share_album').show();
+                if (album.json.editable==='1')  $('#button_trash_album').show() // Only owner can delete album // TODO: give user option to unshare album
+                else                            $('#button_trash_album').hide()
+
+                if (album.json.upload === '1')  $('#button_add_album').show()
+                else                            $('#button_add_album').hide()
 			}
-
-      // Show if rights are permitting this button
-      if(album.json.upload === '1'){
-        $('#tools_album .button_add').show();
-      }else{
-        $('#tools_album .button_add').hide();
-      }
-      if(album.json.erase === '1'){
-          $('#tools_album #button_trash_album').show();
-      }else{
-          $('#tools_album #button_trash_album').hide();
-      }
-
-      // Show all buttons if admin
-      try{
-        var role = localStorage.getItem('lychee_role');
-        if(role === 'admin'){
-			    $('#tools_album .button_add, #button_trash_album').show();
-        }
-      }catch(err){}
-
-
 
 			return true
 			break

@@ -256,8 +256,8 @@ lychee.setTitle = function(title, editable) {
 
 lychee.setMode = function(mode) {
 
-	$('#button_settings, #button_trash_album, .button_add, .header__divider').remove()
-	$('#button_trash, #button_move, #button_star').remove()
+	$('#button_settings, #button_trash_album, #button_add_album, .header__divider').remove()
+	$('#button_trash, #button_move, #button_add, #button_star').remove()
 
 	$('#button_share, #button_share_album')
 		.removeClass('button--eye')
