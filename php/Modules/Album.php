@@ -749,48 +749,59 @@ final class Album {
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
-		// Init vars
-		$photoIDs = array();
+        foreach(explode(',', $this->albumIDs) as $album_id) {
 
-		// Check if user is trying to delete album shared with him
-        if ($_SESSION['role'] === 'user') {
-            $query  = Database::prepare(Database::get(), "SELECT * FROM ? WHERE user_id <> '?' AND id IN (?)", array(LYCHEE_TABLE_ALBUM, $_SESSION['userid'], $this->albumIDs));
-			$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+            // Init vars
+            $photoIDs = array();
 
-            if ($result===false) return false;
+            if ($album_id === 'u') { // Clear unsorted
+                $query  = Database::prepare(Database::get(), "SELECT id FROM ? p_u WHERE user_id = '?' AND p_u.album_id is NULL", array(LYCHEE_TABLE_PHOTOS_USERS, $_SESSION['userid']));
+                $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+            } else { // TODO: add behavior for f, s, r smartalbums (e.g. clear all stars from photos..)
+                // Check if user is trying to delete album shared with him
+                if ($_SESSION['role'] === 'user') {
+                    $query  = Database::prepare(Database::get(), "SELECT * FROM ? WHERE user_id = '?' AND id = '?'", array(LYCHEE_TABLE_ALBUM, $_SESSION['userid'], $album_id));
+                    $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
+                    if ($result===false) return false;
+                }
+
+                // Execute query
+                $query  = Database::prepare(Database::get(), "SELECT id FROM ? p_u WHERE p_u.album_id = '?'", array(LYCHEE_TABLE_PHOTOS_USERS, $album_id));
+                $photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+            }
+
+            if ($photos===false) return false;
+
+            // Only delete photos when albums contain photos
+            if ($photos->num_rows>0) {
+
+                // Add each id to photoIDs
+                while ($row = $photos->fetch_object()) $photoIDs[] = $row->id;
+
+                // Convert photoIDs to a string
+                $photoIDs = implode(',', $photoIDs);
+
+                // Delete all photos
+                $photo = new Photo($photoIDs);
+                if ($photo->delete()!==true) return false;
+
+            }
+
+            if (!in_array($album_id, array('s', 'f', 'r', 'u'))) {
+                // Delete albums
+                $query  = Database::prepare(Database::get(), "DELETE FROM ? WHERE id = '?'", array(LYCHEE_TABLE_ALBUMS, $album_id));
+                $result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
+
+                if ($result===false) return false;
+            }
+
         }
-
-		// Execute query
-		$query  = Database::prepare(Database::get(), "SELECT id FROM ? p_u WHERE p_u.album_id IN (?)", array(LYCHEE_TABLE_PHOTOS_USERS, $this->albumIDs));
-		$photos = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
-
-		if ($photos===false) return false;
-
-		// Only delete photos when albums contain photos
-		if ($photos->num_rows>0) {
-
-			// Add each id to photoIDs
-			while ($row = $photos->fetch_object()) $photoIDs[] = $row->id;
-
-			// Convert photoIDs to a string
-			$photoIDs = implode(',', $photoIDs);
-
-			// Delete all photos
-			$photo = new Photo($photoIDs);
-			if ($photo->delete()!==true) return false;
-
-		}
-
-		// Delete albums
-		$query  = Database::prepare(Database::get(), "DELETE FROM ? WHERE id IN (?)", array(LYCHEE_TABLE_ALBUMS, $this->albumIDs));
-		$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 1, func_get_args());
 
-		if ($result===false) return false;
-		return true;
-
+        return true;
 	}
 
 }
