@@ -115,9 +115,9 @@ final class Import {
 
 		// Parse path
 		if (!isset($path))           $path = LYCHEE_UPLOADS_IMPORT;
-        $path = escapeshellcmd($path); // Escape spaces in path
+       # $path = escapeshellcmd($path); // Escape spaces in path
 		if (substr($path, -1)==='/') $path = substr($path, 0, -1);
-
+$path = mb_convert_encoding($path, "ISO-8859-1", "UTF-8" );
 		if (is_dir($path)===false) {
 			Log::error(Database::get(), __METHOD__, __LINE__, 'Given path is not a directory (' . $path . ')');
 			return false;
