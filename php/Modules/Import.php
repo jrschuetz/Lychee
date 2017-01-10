@@ -117,7 +117,7 @@ final class Import {
 		if (!isset($path))           $path = LYCHEE_UPLOADS_IMPORT;
        # $path = escapeshellcmd($path); // Escape spaces in path
 		if (substr($path, -1)==='/') $path = substr($path, 0, -1);
-$path = mb_convert_encoding($path, "ISO-8859-1", "UTF-8" );
+        $path = mb_convert_encoding($path, "ISO-8859-1", "UTF-8" );
 		if (is_dir($path)===false) {
 			Log::error(Database::get(), __METHOD__, __LINE__, 'Given path is not a directory (' . $path . ')');
 			return false;
@@ -130,6 +130,12 @@ $path = mb_convert_encoding($path, "ISO-8859-1", "UTF-8" );
 				Log::error(Database::get(), __METHOD__, __LINE__, 'The given path is a reserved path of Lychee (' . $path . ')');
 				return false;
 		}
+				Log::error(Database::get(), __METHOD__, __LINE__, 'Could not read file or directory (' . $albumID . ')');
+        // Import isn't executed in an album, store folder in new album
+        if (in_array($albumID, array('s', 'f', 'r', 'u'))) {
+            $album   = new Album(null);
+            $albumID = $album->add('[Import] ' . basename($path));
+        }
 
 		$error              = false;
 		$contains['photos'] = false;
